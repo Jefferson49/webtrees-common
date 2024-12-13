@@ -1,0 +1,14 @@
+{
+    "name": "jefferson49/webtrees-common",
+    "description": "Library to share common code between webtrees custom modules",
+    "type": "library",
+    "keywords": [
+        "webtrees",
+        "webtree-module",
+		"custom-module"
+    ],
+    "license": "GPL-3.0",
+    "require": {
+        "php": ">=7.4"
+    }
+}

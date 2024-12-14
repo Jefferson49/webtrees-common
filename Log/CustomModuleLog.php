@@ -34,7 +34,6 @@ use Fisharebest\Webtrees\Log;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Validator;
 use Fisharebest\Webtrees\Tree;
-use Jefferson49\Webtrees\Common\Log\CustomModuleLogInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 

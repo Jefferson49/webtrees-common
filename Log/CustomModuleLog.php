@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace Jefferson49\Webtrees\Common\Log;
+namespace Jefferson49\Webtrees\Log;
 
 use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\DB;

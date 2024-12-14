@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace Jefferson49\Webtrees\Common\Helpers;
+namespace Jefferson49\Webtrees\Helpers;
 
 use Cissee\WebtreesExt\MoreI18N;
 use Composer\Autoload\ClassLoader;

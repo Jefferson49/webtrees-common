@@ -30,7 +30,7 @@
 
 declare(strict_types=1);
 
-namespace Jefferson49\Webtrees\Common\Internationalization;
+namespace Jefferson49\Webtrees\Internationalization;
 
 use Fisharebest\Webtrees\I18N;
 

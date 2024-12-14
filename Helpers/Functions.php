@@ -28,10 +28,10 @@ declare(strict_types=1);
 
 namespace Jefferson49\Webtrees\Helpers;
 
-use Composer\Autoload\ClassLoader;
 use Fisharebest\Webtrees\Module\ModuleInterface;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Webtrees;
+use Jefferson49\Webtrees\Log\CustomModuleLogInterface;
 
 use Exception;
 

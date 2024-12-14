@@ -26,25 +26,29 @@
  * 
  */
 
-$vendor_directory = __DIR__ . '/../..';
 
-$loader = new Composer\Autoload\ClassLoader($vendor_directory);
+function autoloadWebtreesCommon(string $module_directory) : void {
 
-try {
-    $autoload_common_library_version = Composer\InstalledVersions::getVersion('jefferson49/webtrees-common');
-}
-catch (\OutOfBoundsException $e) {
-    $autoload_common_library_version = '';
-}
+    $vendor_directory =$module_directory . '/vendor';
 
-$local_composer_versions = require $vendor_directory . '/composer/installed.php';
-$local_common_library_version = $local_composer_versions['versions']['jefferson49/webtrees-common']['version'];
-
-//If the found library is later than the current autoload version, prepend the found library to autoload
-//This ensures that always the latest library version is autoloaded
-if (version_compare($local_common_library_version, $autoload_common_library_version, '>')) {
-    $loader->addPsr4('Jefferson49\\Webtrees\\Common\\Helpers\\', $vendor_directory . '/jefferson49/webtrees-common/Helpers');
-    $loader->addPsr4('Jefferson49\\Webtrees\\Common\\Internationalization\\', $vendor_directory. '/jefferson49/webtrees-common/Internationalization');    
-    $loader->addPsr4('Jefferson49\\Webtrees\\Common\\Log\\', $vendor_directory . '/jefferson49/webtrees-common/Log');
-    $loader->register(true);    
-}
+    $loader = new Composer\Autoload\ClassLoader($vendor_directory);
+    
+    try {
+        $autoload_common_library_version = Composer\InstalledVersions::getVersion('jefferson49/webtrees-common');
+    }
+    catch (\OutOfBoundsException $e) {
+        $autoload_common_library_version = '';
+    }
+    
+    $local_composer_versions = require $vendor_directory . '/composer/installed.php';
+    $local_common_library_version = $local_composer_versions['versions']['jefferson49/webtrees-common']['version'];
+    
+    //If the found library is later than the current autoload version, prepend the found library to autoload
+    //This ensures that always the latest library version is autoloaded
+    if (version_compare($local_common_library_version, $autoload_common_library_version, '>')) {
+        $loader->addPsr4('Jefferson49\\Webtrees\\Common\\Helpers\\', $vendor_directory . '/jefferson49/webtrees-common/Helpers');
+        $loader->addPsr4('Jefferson49\\Webtrees\\Common\\Internationalization\\', $vendor_directory. '/jefferson49/webtrees-common/Internationalization');    
+        $loader->addPsr4('Jefferson49\\Webtrees\\Common\\Log\\', $vendor_directory . '/jefferson49/webtrees-common/Log');
+        $loader->register(true);    
+    }
+} 

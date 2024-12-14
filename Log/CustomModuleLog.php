@@ -43,7 +43,7 @@ use Psr\Http\Message\ServerRequestInterface;
 class CustomModuleLog extends Log
 {
     //Define additonal debug type
-    private const string TYPE_DEBUG = 'debug';
+    private const TYPE_DEBUG = 'debug';
 
     /**
      * Only if debugging is activated, store a new module specific debug log in the message log.

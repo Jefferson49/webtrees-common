@@ -28,7 +28,6 @@ declare(strict_types=1);
 
 namespace Jefferson49\Webtrees\Helpers;
 
-use Cissee\WebtreesExt\MoreI18N;
 use Composer\Autoload\ClassLoader;
 use Fisharebest\Webtrees\Module\ModuleInterface;
 use Fisharebest\Webtrees\Registry;
@@ -74,21 +73,5 @@ class Functions
         }
 
         return $module;
-    }
-
-    /**
-     * Add autoload vesta translation for the case that the vesta modules library is not available
-     *
-     * @param  string $custom_module_directory  The directory of the custom module
-     * 
-     * @return void
-     */
-    public static function autoloadVestaTranslation(string $custom_module_directory): void {
-
-        if (self::getFromContainer(MoreI18N::class) === null) {
-            $loader = new ClassLoader();
-            $loader->addPsr4('Cissee\\WebtreesExt\\', $custom_module_directory . "/vendor/vesta-webtrees-2-custom-modules/vesta_common/patchedWebtrees");
-            $loader->register();    
-        }
     }
 }

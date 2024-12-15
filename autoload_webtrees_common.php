@@ -25,8 +25,8 @@
  * 
  */
 
-$search =  str_replace('/', DIRECTORY_SEPARATOR,'/vendor/jefferson49/webtrees-common');
-$dir = str_replace($search, '', __DIR__);
+$search = str_replace('/', DIRECTORY_SEPARATOR,'/vendor/jefferson49/webtrees-common');
+$dir    = str_replace($search,  '', strtolower(__DIR__));
 $loader = new Composer\Autoload\ClassLoader($dir .'/vendor');
 
 try {

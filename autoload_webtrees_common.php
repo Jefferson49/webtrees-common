@@ -21,14 +21,13 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  * 
  * 
- * Autoload the jefferson49/webtrees-common library to share 
- * common code between webtrees custom modules
+ * Autoload the library for common code between webtrees custom modules
  * 
  */
 
-$vendor_directory = __DIR__ . '/../..';
-
-$loader = new Composer\Autoload\ClassLoader($vendor_directory);
+$search =  str_replace('/', DIRECTORY_SEPARATOR,'/vendor/jefferson49/webtrees-common');
+$dir = str_replace($search, '', __DIR__);
+$loader = new Composer\Autoload\ClassLoader($dir .'/vendor');
 
 try {
     $autoload_common_library_version = Composer\InstalledVersions::getVersion('jefferson49/webtrees-common');
@@ -37,14 +36,14 @@ catch (\OutOfBoundsException $e) {
     $autoload_common_library_version = '';
 }
 
-$local_composer_versions = require $vendor_directory . '/composer/installed.php';
+$local_composer_versions = require $dir . '/vendor/composer/installed.php';
 $local_common_library_version = $local_composer_versions['versions']['jefferson49/webtrees-common']['version'];
 
 //If the found library is later than the current autoload version, prepend the found library to autoload
 //This ensures that always the latest library version is autoloaded
 if (version_compare($local_common_library_version, $autoload_common_library_version, '>')) {
-    $loader->addPsr4('Jefferson49\\Webtrees\\Common\\Helpers\\', $vendor_directory . '/jefferson49/webtrees-common/Helpers');
-    $loader->addPsr4('Jefferson49\\Webtrees\\Common\\Internationalization\\', $vendor_directory. '/jefferson49/webtrees-common/Internationalization');    
-    $loader->addPsr4('Jefferson49\\Webtrees\\Common\\Log\\', $vendor_directory . '/jefferson49/webtrees-common/Log');
+    $loader->addPsr4('Jefferson49\\Webtrees\\Helpers\\', $dir . '/vendor/jefferson49/webtrees-common/Helpers');
+    $loader->addPsr4('Jefferson49\\Webtrees\\Internationalization\\', $dir. '/vendor/jefferson49/webtrees-common/Internationalization');    
+    $loader->addPsr4('Jefferson49\\Webtrees\\Log\\', $dir . '/vendor/jefferson49/webtrees-common/Log');
     $loader->register(true);    
 }

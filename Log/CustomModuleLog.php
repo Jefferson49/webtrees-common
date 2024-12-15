@@ -29,11 +29,10 @@ declare(strict_types=1);
 namespace Jefferson49\Webtrees\Log;
 
 use Fisharebest\Webtrees\Auth;
-use Fisharebest\Webtrees\DB;
 use Fisharebest\Webtrees\Log;
-use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Validator;
 use Fisharebest\Webtrees\Tree;
+use Jefferson49\Webtrees\Helpers\Functions;
 use Psr\Http\Message\ServerRequestInterface;
 
 
@@ -77,14 +76,15 @@ class CustomModuleLog extends Log
         $prefix = $custom_module->getLogPrefix();
         $message = $prefix . ': ' . $message;
 
-        if (Registry::container()->has(ServerRequestInterface::class)) {
-            $request    = Registry::container()->get(ServerRequestInterface::class);
+        if (Functions::containerHas(ServerRequestInterface::class)) {
+            $request    = Functions::getFromContainer(ServerRequestInterface::class);
             $ip_address = Validator::attributes($request)->string('client-ip');
         } else {
             $ip_address = '127.0.0.1';
         }
 
-        DB::table('log')->insert([
+        $table = \Illuminate\Database\Capsule\Manager::table('log');        
+        $table->insert([
             'log_type'    => $log_type,
             'log_message' => $message,
             'ip_address'  => $ip_address,

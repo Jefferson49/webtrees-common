@@ -44,6 +44,8 @@ class Functions
     /**
      * Get interface from container
      *
+     * @param string $id
+     * 
      * @return mixed
      */
     public static function getFromContainer(string $id) {
@@ -61,6 +63,18 @@ class Functions
         catch (Exception $e) {
             return null;
         }
+    }    
+
+    /**
+     * Check if container has a certain interface 
+     *
+     * @param string $id
+     * 
+     * @return bool
+     */
+    public static function containerHas(string $id): bool {
+
+        return self::getFromContainer($id) !== null; 
     }    
 
     /**

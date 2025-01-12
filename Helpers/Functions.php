@@ -28,9 +28,14 @@ declare(strict_types=1);
 
 namespace Jefferson49\Webtrees\Helpers;
 
+use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\Module\ModuleInterface;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Webtrees;
+use Fisharebest\Webtrees\Tree;
+use Illuminate\Database\Capsule\Manager as DB;
+use Illuminate\Support\Collection;
+use Illuminate\Database\Query\JoinClause;
 use Jefferson49\Webtrees\Log\CustomModuleLogInterface;
 
 use Exception;
@@ -87,5 +92,91 @@ class Functions
         }
 
         return $module;
+    }
+
+    /**
+     * All the trees, even if current user has no permission to access
+     * This is a modifyed version of the all method of TreeService (which only returns trees with permission)
+     *
+     * @return Collection<array-key,Tree>
+     */
+    public static function getAllTrees(): Collection
+    {
+        return Registry::cache()->array()->remember('all-trees', static function (): Collection {
+            // All trees
+            $query = DB::table('gedcom')
+                ->leftJoin('gedcom_setting', static function (JoinClause $join): void {
+                    $join->on('gedcom_setting.gedcom_id', '=', 'gedcom.gedcom_id')
+                        ->where('gedcom_setting.setting_name', '=', 'title');
+                })
+                ->where('gedcom.gedcom_id', '>', 0)
+                ->select([
+                    'gedcom.gedcom_id AS tree_id',
+                    'gedcom.gedcom_name AS tree_name',
+                    'gedcom_setting.setting_value AS tree_title',
+                ])
+                ->orderBy('gedcom.sort_order')
+                ->orderBy('gedcom_setting.setting_value');
+
+            return $query
+                ->get()
+                ->mapWithKeys(static function (object $row): array {
+                    return [$row->tree_name => Tree::rowMapper()($row)];
+                });
+        });
+    }
+
+    /**
+     * Check if tree is a valid tree
+     *
+     * @return bool
+     */ 
+    public static function isValidTree(string $tree_name): bool
+    {
+       $find_tree = self::getAllTrees()->first(static function (Tree $tree) use ($tree_name): bool {
+           return $tree->name() === $tree_name;
+       });
+       
+       $is_valid_tree = $find_tree instanceof Tree;
+       
+       return $is_valid_tree;
+    }
+
+	/**
+     * Get an array [name => title] for all trees, for which the current user is manager
+     * 
+     * @param Collection $trees The trees, for which the list shall be generated
+     *
+     * @return array            error message
+     */ 
+    public static function getTreeNameTitleList(Collection $trees): array {
+
+        $tree_list = [];
+
+        foreach($trees as $tree) {
+            if (Auth::isManager($tree)) {
+                $tree_list[$tree->name()] = $tree->name() . ' (' . $tree->title() . ')';
+            }
+        }   
+
+        return $tree_list;
+    }
+
+    /**
+     * Get a module setting for a module. Return a default if the setting is not set.
+     *
+     * @param string $module_name
+     * @param string $setting_name
+     * @param string $default
+     *
+     * @return string
+     */
+    final public static function getPreferenceForModule(string $module_name, string $setting_name, string $default = ''): string
+    {
+        //Code from: webtrees AbstractModule->getPreference
+        return DB::table('module_setting')
+            ->where('module_name', '=', $module_name)
+            ->where('setting_name', '=', $setting_name)
+            ->value('setting_value') ?? $default;
     }
 }

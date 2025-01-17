@@ -33,6 +33,7 @@ use Fisharebest\Webtrees\Module\ModuleInterface;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Webtrees;
 use Fisharebest\Webtrees\Tree;
+use Fisharebest\Webtrees\User;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Query\JoinClause;
@@ -123,6 +124,30 @@ class Functions
                 ->mapWithKeys(static function (object $row): array {
                     return [$row->tree_name => Tree::rowMapper()($row)];
                 });
+        });
+    }
+
+    /**
+     * All users
+     *
+     * @return Collection<array-key,User>
+     */
+    public static function getAllUsers(): Collection
+    {
+        return Registry::cache()->array()->remember('all-users', static function (): Collection {
+            // All users
+            $query = DB::table('user')
+            ->where('user.user_id', '>', '0')
+            ->select([
+                'user.user_id',
+                'user_name',
+                'real_name',
+                'email',
+            ]);
+
+            return $query
+                ->get()
+                ->map(User::rowMapper());
         });
     }
 

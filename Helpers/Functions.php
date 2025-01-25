@@ -201,4 +201,23 @@ class Functions
             ->where('setting_name', '=', $setting_name)
             ->value('setting_value') ?? $default;
     }
+
+    /**
+     * Get a tree related to a tree name. Null if name not found
+     *
+     * @param string $name Tree name
+     *
+     * @return Tree
+     */
+    public static function getTreeByName(string $name): Tree|null
+    {    
+        if (Functions::isValidTree($name)) {
+            $tree = Functions::getAllTrees()[$name];
+        }                
+        else {
+            $tree = null;
+        }
+        
+        return $tree;
+    }
 }

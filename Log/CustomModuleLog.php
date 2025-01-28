@@ -53,7 +53,7 @@ class CustomModuleLog extends Log
      *
      * @return void
      */
-    public static function addDebugLog(CustomModuleLogInterface $custom_module, string $message, Tree|null $tree = null): void
+    public static function addDebugLog(CustomModuleLogInterface $custom_module, string $message, ?Tree $tree = null): void
     {
         if ($custom_module->debuggingActivated()) {
             self::addModuleLog($custom_module, $message, self::TYPE_DEBUG, $tree);
@@ -70,7 +70,7 @@ class CustomModuleLog extends Log
      *
      * @return void
      */
-    private static function addModuleLog(CustomModuleLogInterface $custom_module, string $message, string $log_type, Tree|null $tree = null): void
+    private static function addModuleLog(CustomModuleLogInterface $custom_module, string $message, string $log_type, ?Tree $tree = null): void
     {
         //Add custom module specific prefix to log message
         $prefix = $custom_module->getLogPrefix();
@@ -89,7 +89,7 @@ class CustomModuleLog extends Log
             'log_message' => $message,
             'ip_address'  => $ip_address,
             'user_id'     => Auth::id(),
-            'gedcom_id'   => $tree?->id(),
+            'gedcom_id'   => $tree ? $tree->id() : null,
         ]);
     }    
 }

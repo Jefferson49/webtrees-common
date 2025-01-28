@@ -86,7 +86,7 @@ class Functions
     /**
      * Find a specified module, if it is currently active.
      */
-    public static function moduleLogInterface(ModuleInterface $module): CustomModuleLogInterface|null
+    public static function moduleLogInterface(ModuleInterface $module): ?CustomModuleLogInterface
     {
         if (!in_array(CustomModuleLogInterface::class, class_implements($module))) {
             return null;
@@ -209,7 +209,7 @@ class Functions
      *
      * @return Tree
      */
-    public static function getTreeByName(string $name): Tree|null
+    public static function getTreeByName(string $name): ?Tree
     {    
         if (Functions::isValidTree($name)) {
             $tree = Functions::getAllTrees()[$name];

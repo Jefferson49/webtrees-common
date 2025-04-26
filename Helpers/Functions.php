@@ -97,7 +97,7 @@ class Functions
 
     /**
      * All the trees, even if current user has no permission to access
-     * This is a modifyed version of the all method of TreeService (which only returns trees with permission)
+     * This is a modified version of the all method of TreeService (which only returns trees with permission)
      *
      * @return Collection<array-key,Tree>
      */
@@ -149,7 +149,7 @@ class Functions
     }
 
     /**
-     * Check if tree is a valid tree
+     * Check if tree is a valid tree (independend of whether the user has access to the tree)
      *
      * @return bool
      */ 

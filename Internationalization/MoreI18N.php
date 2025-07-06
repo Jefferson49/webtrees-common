@@ -56,4 +56,21 @@ class MoreI18N {
     public static function plural(string $singular, string $plural, int $count, ...$args): string {
         return I18N::plural($singular, $plural, $count, ...$args);
     }
+
+    /**
+     * Translate a number into the local representation.
+     * e.g. 12345.67 becomes
+     * en: 12,345.67
+     * fr: 12 345,67
+     * de: 12.345,67
+     *
+     * @param float $n
+     * @param int   $precision
+     *
+     * @return string
+     */
+    public static function number(float $n, int $precision = 0): string
+    {
+        return I18N::number($n, $precision);
+    }    
 }

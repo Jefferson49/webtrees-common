@@ -20,7 +20,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  * 
- * An extension of the webtrees CaptchaService, which always returns to be no robot
+ * GitHub services to be used in webtrees custom modules
  *
  */
 
@@ -31,6 +31,7 @@ namespace Jefferson49\Webtrees\Helpers;
 use Fig\Http\Message\StatusCodeInterface;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Jefferson49\Webtrees\Exceptions\GithubCommunicationError;
 
 
 /**
@@ -44,7 +45,7 @@ class GithubService
      * @param string $github_repo        The GitHub repository, e.g. 'Jefferson49/webtrees-common'
      * @param string $github_api_token   A GitHub API token, to allow a higher frequency of API requests
      *
-     * @throws GuzzleException           In case of communcation error with GitHub
+     * @throws GithubCommunicationError  In case of a communcation error with GitHub
      *  
      * @return string
      */
@@ -78,7 +79,7 @@ class GithubService
                 }
             } catch (GuzzleException $ex) {
                 // Can't connect to the server?
-                throw $ex;
+                throw new GithubCommunicationError($ex);
             }
         }
 

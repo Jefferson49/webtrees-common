@@ -2,14 +2,14 @@
 
 /**
  * webtrees: online genealogy
- * Copyright (C) 2024 webtrees development team
+ * Copyright (C) 2025 webtrees development team
  *                    <http://webtrees.net>
  *
  * vesta-webtrees-2-custom-modules/vesta_common
  * Copyright (C) 2019 – 2024 Richard Cissée
  *                    <https://github.com/vesta-webtrees-2-custom-modules/vesta_common>
  * 
- * Copyright (C) 2024 Markus Hemprich
+ * Copyright (C) 2025 Markus Hemprich
  *                    <http://www.familienforschung-hemprich.de>
  *
  * This program is free software: you can redistribute it and/or modify

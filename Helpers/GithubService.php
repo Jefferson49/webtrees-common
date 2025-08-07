@@ -78,7 +78,7 @@ class GithubService
                     }
                 }
             } catch (GuzzleException $ex) {
-                // Can't connect to the server?
+                // Can't connect to GitHub?
                 throw new GithubCommunicationError($ex);
             }
         }
@@ -94,7 +94,7 @@ class GithubService
      * @param string $tag_prefix         A prefix for the verison tag, e.g. 'v' in case of 'v1.2.3'
      * @param string $github_api_token   A GitHub API token, to allow a higher frequency of API requests
      * 
-     * @throws GuzzleException           In case of communcation error with GitHub
+     * @throws GithubCommunicationError  In case of communcation error with GitHub
      * 
      * @return string
      */
@@ -153,8 +153,8 @@ class GithubService
                 }
             }
         } catch (GuzzleException $ex) {
-            // Can't connect to the server?
-            throw $ex;
+            // Can't connect to GitHub?
+            throw new GithubCommunicationError($ex);
         }
 
         return $download_url;

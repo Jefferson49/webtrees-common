@@ -79,7 +79,7 @@ class GithubService
                 }
             } catch (GuzzleException $ex) {
                 // Can't connect to GitHub?
-                throw new GithubCommunicationError($ex);
+                throw new GithubCommunicationError($ex->getMessage());
             }
         }
 
@@ -154,7 +154,7 @@ class GithubService
             }
         } catch (GuzzleException $ex) {
             // Can't connect to GitHub?
-            throw new GithubCommunicationError($ex);
+            throw new GithubCommunicationError($ex->getMessage());
         }
 
         return $download_url;

@@ -42,6 +42,7 @@ $local_common_library_version = $local_composer_versions['versions']['jefferson4
 //If the found library is later than the current autoload version, prepend the found library to autoload
 //This ensures that always the latest library version is autoloaded
 if (version_compare($local_common_library_version, $autoload_common_library_version, '>')) {
+    $loader->addPsr4('Jefferson49\\Webtrees\\Exceptions\\', __DIR__ . '/Exceptions');
     $loader->addPsr4('Jefferson49\\Webtrees\\Helpers\\', __DIR__ . '/Helpers');
     $loader->addPsr4('Jefferson49\\Webtrees\\Internationalization\\', __DIR__ . '/Internationalization');
     $loader->addPsr4('Jefferson49\\Webtrees\\Log\\',  __DIR__ . '/Log');

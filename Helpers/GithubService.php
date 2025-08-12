@@ -100,12 +100,8 @@ class GithubService
      */
     public static function downloadUrl(string $github_repo, string $version = '', string $tag_prefix, string $github_api_token = ''): string
     {
-        //Remove wrong line feed characters at the end of a version
-		foreach (["\n", "\r"] as $line_feed_char) {
-			if (strpos($version, $line_feed_char, -1)) {
-				$version = substr($version, 0, strlen($version) - 1);
-			}
-		}
+        //Remove wrong line feed characters, e.g. at the end of a version
+		$version = str_replace(["\n", "\r"], ['', ''], $version);
 
         //Add prefix, if the tags of the repository have a prefix
         if ($version !== '' && strlen($version) > strlen($tag_prefix)) {

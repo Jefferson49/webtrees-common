@@ -157,4 +157,56 @@ class GithubService
 
         return $download_url;
     }
+
+    /**
+     * Get the text of a file from a GitHub repository
+     *
+     * @param string $repo        The GitHub repository, e.g. 'Jefferson49/webtrees-common'
+     * @param string $branch      The GitHub branch
+     * @param string $path        The path on GitHub including the file name
+     * @param string $api_token   A GitHub API token, to allow a higher frequency of API requests
+     *
+     * @throws GithubCommunicationError  In case of a communcation error with GitHub
+     *  
+     * @return string
+     */
+    public static function getTextFileContent(string $repo, string $branch, string $path, string $api_token = ''): string
+    {
+        if ($repo !== '') {
+
+            $github_api_url = 'https://api.github.com/repos/'. $repo .'/contents/' . $path . '?ref=' . $branch;
+
+            try {
+                $client = new Client(
+                    [
+                    'timeout' => 3,
+                    ]
+                );
+
+                $options = [];
+
+                if ($api_token !== '') {
+                    $options['headers'] = ['Authorization' => 'Bearer ' . $api_token];
+                }
+
+                $response = $client->get($github_api_url, $options);
+
+                if ($response->getStatusCode() === StatusCodeInterface::STATUS_OK) {
+                    $content = $response->getBody()->getContents();
+
+                    $file_object = (array) json_decode($content);
+
+                    if (isset($file_object['content'])) {
+                        $file_content = base64_decode($file_object['content']);
+                        return $file_content;
+                    }
+                }
+            } catch (GuzzleException $ex) {
+                // Can't connect to GitHub?
+                throw new GithubCommunicationError($ex->getMessage());
+            }
+        }
+
+        return '';
+    }
 }

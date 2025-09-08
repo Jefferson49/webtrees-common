@@ -41,6 +41,7 @@ use Jefferson49\Webtrees\Log\CustomModuleLogInterface;
 
 use Exception;
 
+
 /**
  * Functions to be used in webtrees custom modules
  */
@@ -57,7 +58,6 @@ class Functions
     public static function getFromContainer(string $id) {
 
         try {
-
             if (version_compare(Webtrees::VERSION, '2.2.0', '>=')) {
                 return Registry::container()->get($id);
             }
@@ -84,7 +84,7 @@ class Functions
     }    
 
     /**
-     * Find a specified module, if it is currently active.
+     * Provide a webtrees module with CustomModuleLogInterface
      */
     public static function moduleLogInterface(ModuleInterface $module): ?CustomModuleLogInterface
     {
@@ -92,6 +92,7 @@ class Functions
             return null;
         }
 
+        /** @var CustomModuleLogInterface $module To avoid IDE warnings */
         return $module;
     }
 

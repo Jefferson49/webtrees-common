@@ -194,7 +194,7 @@ class GithubService
                 if ($response->getStatusCode() === StatusCodeInterface::STATUS_OK) {
                     $content = $response->getBody()->getContents();
 
-                    $file_object = (array) json_decode($content);
+                    $file_object = json_decode($content, true);
 
                     if (isset($file_object['content'])) {
                         $file_content = base64_decode($file_object['content']);

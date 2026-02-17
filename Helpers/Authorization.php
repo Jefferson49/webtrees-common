@@ -29,10 +29,11 @@ declare(strict_types=1);
 namespace Jefferson49\Webtrees\Helpers;
 
 use InvalidArgumentException;
+use RuntimeException;
 
 
 /**
- * A service to connect with GitHub and request the GitHub API
+ * Functions to be used for authorization within webtrees custom modules
  */
 class Authorization
 {
@@ -50,5 +51,47 @@ class Authorization
             throw new InvalidArgumentException('Length must be an even number.');
         }
         return bin2hex(random_bytes($length / 2));
-    }    
+    }
+
+    /**
+     * Generate a secure random password using OpenSSL
+     *
+     * @param int    $length  Length of the password
+     * @param string $chars   Allowed characters
+     * 
+     * @return string Generated password
+     * 
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
+     */
+    public static function generateSecurePassword($length = 12, $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_=+[]{};:,.<>?') {
+
+        if ($length <= 0) {
+            throw new InvalidArgumentException("Password length must be greater than zero.");
+        }
+
+        $charLen = strlen($chars);
+        if ($charLen < 2) {
+            throw new InvalidArgumentException("Character set must contain at least two characters.");
+        }
+
+        // Check if OpenSSL extension is available 
+        if (!extension_loaded('openssl')) {
+            throw new RuntimeException('The PHP extension openssl is not available.');
+        }
+
+        // Generate cryptographically secure random bytes
+        $bytes = openssl_random_pseudo_bytes($length);
+        if ($bytes === '') {
+            throw new RuntimeException("Unable to generate secure random bytes.");
+        }
+
+        $password = '';
+        for ($i = 0; $i < $length; $i++) {
+            // Convert each byte to an index in the allowed characters
+            $password .= $chars[ord($bytes[$i]) % $charLen];
+        }
+
+        return $password;
+    }
 }

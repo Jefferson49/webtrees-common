@@ -29,6 +29,7 @@ declare(strict_types=1);
 namespace Jefferson49\Webtrees\Helpers;
 
 use Fisharebest\Webtrees\Auth;
+use Fisharebest\Webtrees\Contracts\UserInterface;
 use Fisharebest\Webtrees\Module\ModuleInterface;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Webtrees;
@@ -36,6 +37,7 @@ use Fisharebest\Webtrees\Tree;
 use Fisharebest\Webtrees\User;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Support\Collection;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Jefferson49\Webtrees\Log\CustomModuleLogInterface;
 
@@ -104,28 +106,60 @@ class Functions
      */
     public static function getAllTrees(): Collection
     {
-        return Registry::cache()->array()->remember('all-trees', static function (): Collection {
-            // All trees
-            $query = DB::table('gedcom')
-                ->leftJoin('gedcom_setting', static function (JoinClause $join): void {
-                    $join->on('gedcom_setting.gedcom_id', '=', 'gedcom.gedcom_id')
-                        ->where('gedcom_setting.setting_name', '=', 'title');
-                })
-                ->where('gedcom.gedcom_id', '>', 0)
-                ->select([
-                    'gedcom.gedcom_id AS tree_id',
-                    'gedcom.gedcom_name AS tree_name',
-                    'gedcom_setting.setting_value AS tree_title',
-                ])
-                ->orderBy('gedcom.sort_order')
-                ->orderBy('gedcom_setting.setting_value');
+        if (version_compare(Webtrees::VERSION, '2.2.6', '<')) {
 
-            return $query
-                ->get()
-                ->mapWithKeys(static function (object $row): array {
-                    return [$row->tree_name => Tree::rowMapper()($row)];
-                });
-        });
+            //Code for webtrees versions < 2.2.6 with old database schema
+
+            return Registry::cache()->array()->remember('all-trees', static function (): Collection {
+                // All trees
+                $query = DB::table('gedcom')
+                    ->leftJoin('gedcom_setting', static function (JoinClause $join): void {
+                        $join->on('gedcom_setting.gedcom_id', '=', 'gedcom.gedcom_id')
+                            ->where('gedcom_setting.setting_name', '=', 'title');
+                    })
+                    ->where('gedcom.gedcom_id', '>', 0)
+                    ->select([
+                        'gedcom.gedcom_id AS tree_id',
+                        'gedcom.gedcom_name AS tree_name',
+                        'gedcom_setting.setting_value AS tree_title',
+                    ])
+                    ->orderBy('gedcom.sort_order')
+                    ->orderBy('gedcom_setting.setting_value');
+
+                return $query
+                    ->get()
+                    ->mapWithKeys(static function (object $row): array {
+                        return [$row->tree_name => Tree::rowMapper()($row)];
+                    });
+            });
+        }
+        else {
+
+            //Code for webtrees versions >= 2.2.6 with new database schema
+
+            return Registry::cache()->array()->remember('all-trees', static function (): Collection {
+                // All trees
+                $query = DB::table('gedcom')
+                    ->where('gedcom.gedcom_id', '>', 0)
+                    ->when(!Auth::isAdmin(), function (Builder $query): void {
+                        $query->leftJoin('user_gedcom_setting', static function (JoinClause $join): void {
+                            $join
+                                ->on('user_gedcom_setting.gedcom_id', '=', 'gedcom.gedcom_id')
+                                ->where('user_id', '=', Auth::id())
+                                ->where('setting_name', '=', UserInterface::PREF_TREE_ROLE);
+                        });
+                    })
+                    ->select(['gedcom.*'])
+                    ->orderBy('gedcom.sort_order')
+                    ->orderBy('gedcom.title');
+
+                // TODO - do we need the array keys, or would a list of trees be sufficient?
+                return $query
+                    ->get()
+                    ->map(Tree::fromDB(...))
+                    ->mapWithKeys(static fn (Tree $tree): array => [$tree->name() => $tree]);
+            });
+        }
     }
 
     /**

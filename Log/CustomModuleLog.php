@@ -89,7 +89,7 @@ class CustomModuleLog extends Log
             'log_message' => $message,
             'ip_address'  => $ip_address,
             'user_id'     => Auth::id(),
-            'gedcom_id'   => $tree ? $tree->id() : null,
+            'gedcom_id'   => $tree instanceof Tree ? $tree->id() : null,
         ]);
     }    
 }

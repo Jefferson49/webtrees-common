@@ -209,4 +209,50 @@ class GithubService
 
         return '';
     }
+
+    /**
+     * Get the release note of the latest release of a GitHub repository
+     *
+     * @param string $github_repo        The GitHub repository, e.g. 'Jefferson49/webtrees-common'
+     * @param string $github_api_token   A GitHub API token, to allow a higher frequency of API requests
+     *
+     * @throws GithubCommunicationError  In case of a communcation error with GitHub
+     *  
+     * @return string
+     */
+    public static function getLatestReleaseNote(string $github_repo, string $github_api_token = ''): string
+    {
+        if ($github_repo !== '') {
+
+            $github_api_url = 'https://api.github.com/repos/'. $github_repo . '/releases/latest';
+
+            try {
+                $client = new Client(
+                    [
+                    'timeout' => 3,
+                    ]
+                );
+
+                $options = [];
+
+                if ($github_api_token !== '') {
+                    $options['headers'] = ['Authorization' => 'Bearer ' . $github_api_token];
+                }
+
+                $response = $client->get($github_api_url, $options);
+
+                if ($response->getStatusCode() === StatusCodeInterface::STATUS_OK) {
+
+                    $content = (array) Json_decode($response->getBody()->getContents());
+                    $body = $content['body'] ?? '';
+                    return $body;
+                }
+            } catch (GuzzleException $ex) {
+                // Can't connect to GitHub?
+                throw new GithubCommunicationError($ex->getMessage());
+            }
+        }
+
+        return '';
+    }    
 }

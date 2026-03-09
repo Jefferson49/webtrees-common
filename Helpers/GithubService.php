@@ -211,7 +211,7 @@ class GithubService
     }
 
     /**
-     * Get the release note of the latest release of a GitHub repository
+     * Get the release notes of the latest release of a GitHub repository
      *
      * @param string $github_repo        The GitHub repository, e.g. 'Jefferson49/webtrees-common'
      * @param string $github_api_token   A GitHub API token, to allow a higher frequency of API requests
@@ -220,7 +220,7 @@ class GithubService
      *  
      * @return string
      */
-    public static function getLatestReleaseNote(string $github_repo, string $github_api_token = ''): string
+    public static function getLatestReleaseNotes(string $github_repo, string $github_api_token = ''): string
     {
         if ($github_repo !== '') {
 

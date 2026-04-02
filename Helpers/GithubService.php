@@ -98,7 +98,7 @@ class GithubService
      * 
      * @return string
      */
-    public static function downloadUrl(string $github_repo, string $version = '', string $tag_prefix, string $github_api_token = ''): string
+    public static function downloadUrl(string $github_repo, string $version, string $tag_prefix, string $github_api_token = ''): string
     {
         //Remove wrong line feed characters, e.g. at the end of a version
 		$version = str_replace(["\n", "\r"], ['', ''], $version);

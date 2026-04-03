@@ -183,22 +183,6 @@ class Functions
             ->map(User::rowMapper());
     }
 
-    /**
-     * Check if tree is a valid tree (independend of whether the user has access to the tree)
-     *
-     * @return bool
-     */ 
-    public static function isValidTree(string $tree_name): bool
-    {
-       $find_tree = self::getAllTrees()->first(static function (Tree $tree) use ($tree_name): bool {
-           return $tree->name() === $tree_name;
-       });
-       
-       $is_valid_tree = $find_tree instanceof Tree;
-       
-       return $is_valid_tree;
-    }
-
 	/**
      * Get an array [name => title] for all trees, for which the current user is manager
      * 
@@ -235,24 +219,5 @@ class Functions
             ->where('module_name', '=', $module_name)
             ->where('setting_name', '=', $setting_name)
             ->value('setting_value') ?? $default;
-    }
-
-    /**
-     * Get a tree related to a tree name. Null if name not found
-     *
-     * @param string $name Tree name
-     *
-     * @return Tree
-     */
-    public static function getTreeByName(string $name): ?Tree
-    {    
-        if (Functions::isValidTree($name)) {
-            $tree = Functions::getAllTrees()[$name];
-        }                
-        else {
-            $tree = null;
-        }
-        
-        return $tree;
     }
 }

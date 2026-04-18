@@ -63,6 +63,7 @@ class CustomModuleLog extends Log
     /**
      * Store a new module specific message (of the appropriate type) in the message log.
      * code from: Fisharebest\Webtree\Log::addLog;
+     * Last check: 2026-04-05
      *
      * @param string    $message
      * @param string    $log_type

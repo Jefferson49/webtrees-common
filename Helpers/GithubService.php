@@ -211,6 +211,75 @@ class GithubService
     }
 
     /**
+     * Get the maximum download count among the latest releases of a GitHub repository.
+     * 
+     * Fetches the last 3 releases, sums the download_count of each release's assets,
+     * and returns the maximum sum (as a proxy for popularity).
+     *
+     * @param string $github_repo        The GitHub repository, e.g. 'Jefferson49/webtrees-common'
+     * @param string $github_api_token   A GitHub API token, to allow a higher frequency of API requests
+     * @param int    $release_count      The number of recent releases to consider
+     *
+     * @throws GithubCommunicationError  In case of a communication error with GitHub
+     *  
+     * @return int  The maximum download count, or -1 if unavailable
+     */
+    public static function getRecentReleasesMaxDownloads(string $github_repo, string $github_api_token = '', int $release_count = 3): int
+    {
+        if ($github_repo === '') {
+            return -1;
+        }
+
+        $github_api_url = 'https://api.github.com/repos/' . $github_repo . '/releases?per_page=' . $release_count;
+
+        try {
+            $client = new Client(
+                [
+                'timeout' => 3,
+                ]
+            );
+
+            $options = [];
+
+            if ($github_api_token !== '') {
+                $options['headers'] = ['Authorization' => 'Bearer ' . $github_api_token];
+            }
+
+            $response = $client->get($github_api_url, $options);
+
+            if ($response->getStatusCode() === StatusCodeInterface::STATUS_OK) {
+                $releases = json_decode($response->getBody()->getContents(), true);
+
+                if (!is_array($releases) || $releases === []) {
+                    return -1;
+                }
+
+                $max_downloads = 0;
+
+                foreach ($releases as $release) {
+                    $release_downloads = 0;
+
+                    if (isset($release['assets']) && is_array($release['assets'])) {
+                        foreach ($release['assets'] as $asset) {
+                            $release_downloads += (int) ($asset['download_count'] ?? 0);
+                        }
+                    }
+
+                    if ($release_downloads > $max_downloads) {
+                        $max_downloads = $release_downloads;
+                    }
+                }
+
+                return $max_downloads;
+            }
+        } catch (GuzzleException $ex) {
+            throw new GithubCommunicationError($ex->getMessage());
+        }
+
+        return -1;
+    }
+
+    /**
      * Get the release notes of the latest release of a GitHub repository
      *
      * @param string $github_repo        The GitHub repository, e.g. 'Jefferson49/webtrees-common'

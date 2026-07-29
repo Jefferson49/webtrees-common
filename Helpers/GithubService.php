@@ -29,8 +29,14 @@ declare(strict_types=1);
 namespace Jefferson49\Webtrees\Helpers;
 
 use Fig\Http\Message\StatusCodeInterface;
+use Fisharebest\Webtrees\Registry;
+use Fisharebest\Webtrees\Webtrees;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Psr\Http\Client\ClientExceptionInterface;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
 use Jefferson49\Webtrees\Exceptions\GithubCommunicationError;
 
 
@@ -55,31 +61,14 @@ class GithubService
 
             $github_api_url = 'https://api.github.com/repos/'. $github_repo . '/releases/latest';
 
-            try {
-                $client = new Client(
-                    [
-                    'timeout' => 3,
-                    ]
-                );
+            $response = self::getResponse($github_api_url, $github_api_token);
 
-                $options = [];
-
-                if ($github_api_token !== '') {
-                    $options['headers'] = ['Authorization' => 'Bearer ' . $github_api_token];
+            if ($response->getStatusCode() === StatusCodeInterface::STATUS_OK) {
+                $content = $response->getBody()->getContents();
+                
+                if (preg_match('/"tag_name":"([^"]+?)"/', $content, $matches) === 1) {
+                    return $matches[1];
                 }
-
-                $response = $client->get($github_api_url, $options);
-
-                if ($response->getStatusCode() === StatusCodeInterface::STATUS_OK) {
-                    $content = $response->getBody()->getContents();
-                    
-                    if (preg_match('/"tag_name":"([^"]+?)"/', $content, $matches) === 1) {
-                        return $matches[1];
-                    }
-                }
-            } catch (GuzzleException $ex) {
-                // Can't connect to GitHub?
-                throw new GithubCommunicationError($ex->getMessage());
             }
         }
 
@@ -125,34 +114,17 @@ class GithubService
         }
 
         // Get the download URL from GitHub
-        try {
-            $client = new Client(
-                [
-                'timeout'       => 3,
-                ]
-            );
+        $response = self::getResponse($url, $github_api_token);
 
-            $options = [];
-
-            if ($github_api_token !== '') {
-                $options['headers'] = ['Authorization' => 'Bearer ' . $github_api_token];
+        if ($response->getStatusCode() === StatusCodeInterface::STATUS_OK) {
+            $content = $response->getBody()->getContents();
+            
+            if (preg_match('/"browser_download_url":"([^"]+?)"/', $content, $matches) === 1) {
+                $download_url = $matches[1];
             }
-
-            $response = $client->get($url, $options);
-
-            if ($response->getStatusCode() === StatusCodeInterface::STATUS_OK) {
-                $content = $response->getBody()->getContents();
-                
-                if (preg_match('/"browser_download_url":"([^"]+?)"/', $content, $matches) === 1) {
-                    $download_url = $matches[1];
-                }
-                elseif (preg_match('/"tag_name":"([^"]+?)"/', $content, $matches) === 1) {
-                    $download_url = 'https://github.com/' . $github_repo . '/archive/refs/tags/' . $matches[1] . '.zip';
-                }
+            elseif (preg_match('/"tag_name":"([^"]+?)"/', $content, $matches) === 1) {
+                $download_url = 'https://github.com/' . $github_repo . '/archive/refs/tags/' . $matches[1] . '.zip';
             }
-        } catch (GuzzleException $ex) {
-            // Can't connect to GitHub?
-            throw new GithubCommunicationError($ex->getMessage());
         }
 
         return $download_url;
@@ -161,49 +133,32 @@ class GithubService
     /**
      * Get the text of a file from a GitHub repository
      *
-     * @param string $repo        The GitHub repository, e.g. 'Jefferson49/webtrees-common'
-     * @param string $branch      The GitHub branch
-     * @param string $path        The path on GitHub including the file name
-     * @param string $api_token   A GitHub API token, to allow a higher frequency of API requests
+     * @param string $repo              The GitHub repository, e.g. 'Jefferson49/webtrees-common'
+     * @param string $branch            The GitHub branch
+     * @param string $path              The path on GitHub including the file name
+     * @param string $github_api_token  A GitHub API token, to allow a higher frequency of API requests
      *
      * @throws GithubCommunicationError  In case of a communcation error with GitHub
      *  
      * @return string
      */
-    public static function getTextFileContent(string $repo, string $branch, string $path, string $api_token = ''): string
+    public static function getTextFileContent(string $repo, string $branch, string $path, string $github_api_token = ''): string
     {
         if ($repo !== '') {
 
             $github_api_url = 'https://api.github.com/repos/'. $repo .'/contents/' . $path . '?ref=' . $branch;
 
-            try {
-                $client = new Client(
-                    [
-                    'timeout' => 3,
-                    ]
-                );
+            $response = self::getResponse($github_api_url, $github_api_token);
 
-                $options = [];
+            if ($response->getStatusCode() === StatusCodeInterface::STATUS_OK) {
 
-                if ($api_token !== '') {
-                    $options['headers'] = ['Authorization' => 'Bearer ' . $api_token];
+                $content = $response->getBody()->getContents();
+                $file_object = json_decode($content, true);
+
+                if (isset($file_object['content'])) {
+                    $file_content = base64_decode($file_object['content']);
+                    return $file_content;
                 }
-
-                $response = $client->get($github_api_url, $options);
-
-                if ($response->getStatusCode() === StatusCodeInterface::STATUS_OK) {
-                    $content = $response->getBody()->getContents();
-
-                    $file_object = json_decode($content, true);
-
-                    if (isset($file_object['content'])) {
-                        $file_content = base64_decode($file_object['content']);
-                        return $file_content;
-                    }
-                }
-            } catch (GuzzleException $ex) {
-                // Can't connect to GitHub?
-                throw new GithubCommunicationError($ex->getMessage());
             }
         }
 
@@ -227,62 +182,46 @@ class GithubService
      */
     public static function getRecentReleasesInfo(string $github_repo, string $github_api_token = '', int $release_count = 3): array
     {
+        $github_api_url = 'https://api.github.com/repos/' . $github_repo . '/releases?per_page=' . $release_count;
+
         $result = ['tag' => '', 'max_downloads' => -1];
 
         if ($github_repo === '') {
             return $result;
         }
 
-        $github_api_url = 'https://api.github.com/repos/' . $github_repo . '/releases?per_page=' . $release_count;
+        $response = self::getResponse($github_api_url, $github_api_token);
 
-        try {
-            $client = new Client(
-                [
-                'timeout' => 3,
-                ]
-            );
+        if ($response->getStatusCode() === StatusCodeInterface::STATUS_OK) {
+            $releases = json_decode($response->getBody()->getContents(), true);
 
-            $options = [];
-
-            if ($github_api_token !== '') {
-                $options['headers'] = ['Authorization' => 'Bearer ' . $github_api_token];
+            if (!is_array($releases) || $releases === []) {
+                return $result;
             }
 
-            $response = $client->get($github_api_url, $options);
+            // Latest version tag is from the first (most recent) release
+            if (isset($releases[0]['tag_name'])) {
+                $result['tag'] = $releases[0]['tag_name'];
+            }
 
-            if ($response->getStatusCode() === StatusCodeInterface::STATUS_OK) {
-                $releases = json_decode($response->getBody()->getContents(), true);
+            // Max download count across all fetched releases
+            $max_downloads = 0;
 
-                if (!is_array($releases) || $releases === []) {
-                    return $result;
-                }
+            foreach ($releases as $release) {
+                $release_downloads = 0;
 
-                // Latest version tag is from the first (most recent) release
-                if (isset($releases[0]['tag_name'])) {
-                    $result['tag'] = $releases[0]['tag_name'];
-                }
-
-                // Max download count across all fetched releases
-                $max_downloads = 0;
-
-                foreach ($releases as $release) {
-                    $release_downloads = 0;
-
-                    if (isset($release['assets']) && is_array($release['assets'])) {
-                        foreach ($release['assets'] as $asset) {
-                            $release_downloads += (int) ($asset['download_count'] ?? 0);
-                        }
-                    }
-
-                    if ($release_downloads > $max_downloads) {
-                        $max_downloads = $release_downloads;
+                if (isset($release['assets']) && is_array($release['assets'])) {
+                    foreach ($release['assets'] as $asset) {
+                        $release_downloads += (int) ($asset['download_count'] ?? 0);
                     }
                 }
 
-                $result['max_downloads'] = $max_downloads;
+                if ($release_downloads > $max_downloads) {
+                    $max_downloads = $release_downloads;
+                }
             }
-        } catch (GuzzleException $ex) {
-            throw new GithubCommunicationError($ex->getMessage());
+
+            $result['max_downloads'] = $max_downloads;
         }
 
         return $result;
@@ -303,7 +242,49 @@ class GithubService
         if ($github_repo !== '') {
 
             $github_api_url = 'https://api.github.com/repos/'. $github_repo . '/releases/latest';
+            $response = self::getResponse($github_api_url, $github_api_token);
 
+            if ($response->getStatusCode() === StatusCodeInterface::STATUS_OK) {
+
+                $content = (array) Json_decode($response->getBody()->getContents());
+                $body = $content['body'] ?? '';
+                return $body;
+            }
+        }
+
+        return '';
+    }    
+
+    /**
+     * Create a request to GitHub and return the response
+     *
+     * @param string $url                The GitHub repository, e.g. 'Jefferson49/webtrees-common'
+     * @param string $github_api_token   A GitHub API token, to allow a higher frequency of API requests
+     *
+     * @throws GithubCommunicationError  In case of a communcation error with GitHub
+     *  
+     * @return string
+     */
+    public static function getResponse(string $url, string $github_api_token = ''): ResponseInterface
+    {
+        if (version_compare(Webtrees::VERSION, '2.2.6', '>')) {
+            try {
+                $http_client     = Registry::container()->get(ClientInterface::class);
+                $request_factory = Registry::container()->get(RequestFactoryInterface::class);
+                $request         = $request_factory->createRequest('GET', $url);
+
+                if ($github_api_token !== '') {
+                    $request = $request->withHeader('Authorization', 'Bearer ' . $github_api_token);
+                }
+
+                return $http_client->sendRequest($request);
+
+            } catch (ClientExceptionInterface $ex) {
+                // Can't connect to the server?
+                throw new GithubCommunicationError($ex->getMessage());
+            }
+        }
+        else {
             try {
                 $client = new Client(
                     [
@@ -317,20 +298,12 @@ class GithubService
                     $options['headers'] = ['Authorization' => 'Bearer ' . $github_api_token];
                 }
 
-                $response = $client->get($github_api_url, $options);
+                return $client->get($url, $options);
 
-                if ($response->getStatusCode() === StatusCodeInterface::STATUS_OK) {
-
-                    $content = (array) Json_decode($response->getBody()->getContents());
-                    $body = $content['body'] ?? '';
-                    return $body;
-                }
             } catch (GuzzleException $ex) {
                 // Can't connect to GitHub?
                 throw new GithubCommunicationError($ex->getMessage());
             }
         }
-
-        return '';
     }    
 }

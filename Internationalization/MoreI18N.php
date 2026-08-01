@@ -33,6 +33,10 @@ declare(strict_types=1);
 namespace Jefferson49\Webtrees\Internationalization;
 
 use Fisharebest\Webtrees\I18N;
+use Fisharebest\Webtrees\I18N\Translation;
+use Fisharebest\Webtrees\Webtrees;
+use Fisharebest\Localization\Translation as FisharebestTranslation;
+
 
 class MoreI18N {
 
@@ -72,5 +76,33 @@ class MoreI18N {
     public static function number(float $n, int $precision = 0): string
     {
         return I18N::number($n, $precision);
+    }
+
+    /**
+     * Load a .mo file and return the translations.
+     *
+     * @param string $lang_dir
+     * @param string $language
+     *
+     * @return array
+     */
+    public static function readTranslationsFromMoFile(string $lang_dir, string $language): array
+    {
+        $mo_file  = $lang_dir . $language . '.mo';
+        
+        if (!file_exists($mo_file)) {
+            return [];
+        }
+
+        if (version_compare(Webtrees::VERSION, '2.2.6', '>')) {
+
+            $stream       = fopen($mo_file, 'rb');
+            $translations = Translation::fromMoStream($stream)->toArray();
+            fclose($stream);        
+            return $translations;
+        }
+        else {
+            return (new FisharebestTranslation($mo_file))->asArray();
+        }
     }    
 }

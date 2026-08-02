@@ -60,7 +60,7 @@ class Auth extends WebtreesAuth
         if (version_compare(Webtrees::VERSION, '2.2.6', '>')) {
 
             $access_level = parent::accessLevel($tree, $user);
-            return AccessLevel::from($access_level)->value;
+            return $access_level->value;
             
         } else {
             return parent::accessLevel($tree, $user);

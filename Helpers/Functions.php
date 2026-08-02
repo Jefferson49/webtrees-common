@@ -29,16 +29,14 @@ declare(strict_types=1);
 namespace Jefferson49\Webtrees\Helpers;
 
 use Fisharebest\Webtrees\Auth;
-use Fisharebest\Webtrees\Contracts\UserInterface;
+use Fisharebest\Webtrees\Enums\AccessLevel;
+use Fisharebest\Webtrees\GedcomRecord;
 use Fisharebest\Webtrees\Module\ModuleInterface;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Webtrees;
-use Fisharebest\Webtrees\Tree;
 use Fisharebest\Webtrees\User;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Support\Collection;
-use Illuminate\Database\Query\Builder;
-use Illuminate\Database\Query\JoinClause;
 use Jefferson49\Webtrees\Log\CustomModuleLogInterface;
 
 use Exception;
@@ -156,5 +154,23 @@ class Functions
             ->where('module_name', '=', $module_name)
             ->where('setting_name', '=', $setting_name)
             ->value('setting_value') ?? $default;
+    }
+
+    /**
+     * Return the privatized GEDCOM of a Gedcom record
+     * 
+     * @param GedcomRecord $record        Gedcom structure
+     * @param int          $access_level  Access level of the user
+     * 
+     * @return string
+     */
+    public static function getPrivatizedGedcom(GedcomRecord $record, int $access_level) : string {
+
+        if (version_compare(Webtrees::VERSION, '2.2.6', '>')) {
+            return $record->privatizeGedcom(AccessLevel::from($access_level));
+        }        
+        else {
+            return $record->privatizeGedcom($access_level);
+        }
     }
 }

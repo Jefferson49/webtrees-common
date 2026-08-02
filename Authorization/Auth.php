@@ -29,6 +29,10 @@ declare(strict_types=1);
 namespace Jefferson49\Webtrees\Authorization;
 
 use Fisharebest\Webtrees\Auth as WebtreesAuth;
+use Fisharebest\Webtrees\Contracts\UserInterface;
+use Fisharebest\Webtrees\Enums\AccessLevel;
+use Fisharebest\Webtrees\Webtrees;
+use Fisharebest\Webtrees\Tree;
 
 
 /**
@@ -41,4 +45,25 @@ class Auth extends WebtreesAuth
     public const int PRIV_USER    = 1; // Allows members to access the item
     public const int PRIV_NONE    = 0; // Allows managers to access the item
     public const int PRIV_HIDE    = -1; // Hide the item to all users
+
+
+    /**
+     * What is the user's access level within a tree?
+     * 
+     * @param Tree           $tree
+     * @param ?UserInterface $user
+     * 
+     * @return int
+     */
+    public static function accessLevelForTree(Tree $tree, ?UserInterface $user = null): int
+    {
+        if (version_compare(Webtrees::VERSION, '2.2.6', '>')) {
+
+            $access_level = parent::accessLevel($tree, $user);
+            return AccessLevel::from($access_level)->value;
+            
+        } else {
+            return parent::accessLevel($tree, $user);
+        }
+    }
 }

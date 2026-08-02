@@ -30,7 +30,6 @@ namespace Jefferson49\Webtrees\Authorization;
 
 use Fisharebest\Webtrees\Auth as WebtreesAuth;
 use Fisharebest\Webtrees\Contracts\UserInterface;
-use Fisharebest\Webtrees\Enums\AccessLevel;
 use Fisharebest\Webtrees\Webtrees;
 use Fisharebest\Webtrees\Tree;
 

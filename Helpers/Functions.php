@@ -173,4 +173,22 @@ class Functions
             return $record->privatizeGedcom($access_level);
         }
     }
+
+    /**
+     * Can the details of this record be shown?
+     * 
+     * @param GedcomRecord $record        Gedcom structure
+     * @param int          $access_level  Access level of the user
+     * 
+     * @return bool
+     */
+    public static function canShowRecord(GedcomRecord $record, int $access_level): bool
+    {
+        if (version_compare(Webtrees::VERSION, '2.2.6', '>')) {
+            return $record->canShow(AccessLevel::from($access_level));
+        }        
+        else {
+            return $record->canShow($access_level);  
+        }
+    }
 }

@@ -30,6 +30,7 @@ namespace Jefferson49\Webtrees\Helpers;
 
 use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\Enums\AccessLevel;
+use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\GedcomRecord;
 use Fisharebest\Webtrees\Module\ModuleInterface;
 use Fisharebest\Webtrees\Registry;
@@ -189,6 +190,29 @@ class Functions
         }        
         else {
             return $record->canShow($access_level);  
+        }
+    }
+
+    /**
+     * The facts and events for this record.
+     *
+     * @param array<string> $filter
+     *
+     * @return Collection<int,Fact>
+     */
+    public static function getRecordFacts(
+        GedcomRecord $record,
+        array $filter = [],
+        bool $sort = false,
+        ?int $access_level = null,
+        bool $ignore_deleted = false
+    ): Collection {
+
+        if (version_compare(Webtrees::VERSION, '2.2.6', '>')) {
+            return $record->facts($filter, $sort, AccessLevel::from($access_level), $ignore_deleted);
+        }        
+        else {
+            return $record->facts($filter, $sort, $access_level, $ignore_deleted);
         }
     }
 }

@@ -45,6 +45,7 @@ if (version_compare($local_common_library_version, $autoload_common_library_vers
     $loader->addPsr4('Jefferson49\\Webtrees\\Authorization\\', __DIR__ . '/Authorization');
     $loader->addPsr4('Jefferson49\\Webtrees\\Exceptions\\', __DIR__ . '/Exceptions');
     $loader->addPsr4('Jefferson49\\Webtrees\\Helpers\\', __DIR__ . '/Helpers');
+    $loader->addPsr4('Jefferson49\\Webtrees\\Module\\', __DIR__ . '/Module');
     $loader->addPsr4('Jefferson49\\Webtrees\\Internationalization\\', __DIR__ . '/Internationalization');
     $loader->addPsr4('Jefferson49\\Webtrees\\Log\\',  __DIR__ . '/Log');
     $loader->register(true);

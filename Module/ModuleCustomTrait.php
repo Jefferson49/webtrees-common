@@ -40,7 +40,6 @@ use Jefferson49\Webtrees\Helpers\GithubService;
 use Jefferson49\Webtrees\Internationalization\MoreI18N;
 
 use LogicException;
-use RuntimeException;
 
 
 /**
@@ -237,57 +236,27 @@ trait ModuleCustomTrait
             }
         );
 
-        $alternative_view_found = false;
-
         foreach($this->custom_view_list as $custom_view) {
 
             [$namespace, $view_name] = explode(View::NAMESPACE_SEPARATOR, (string) $custom_view, 2);
 
-            foreach($custom_modules as $custom_module) {
+            $view = new View('test');
 
-                $view = new View('test');
+            try {
+                $file_name = $view->getFilenameForView($view_name);
 
-                try {
-                    $file_name = $view->getFilenameForView($custom_module->name() . View::NAMESPACE_SEPARATOR . $view_name);
-                    $alternative_view_found = true;
-    
-                    //If a view of one of the custom modules is found, which are known to use the same view
-                    if (in_array($custom_module->name(), ['_jc-simple-media-display_', '_webtrees-simple-media-display_'])) {
-                        
-                        $message =  '<b>' . MoreI18N::xlate('Warning') . ':</b><br>' .
-                                    I18N::translate('The custom module "%s" is activated in parallel to the %s custom module. This can lead to unintended behavior. If using the %s module, it is strongly recommended to deactivate the "%s" module, because the identical functionality is also integrated in the %s module.', 
-                                    '<b>' . $custom_module->title() . '</b>', $this->title(), $this->title(), $custom_module->title(), $this->title());
-                    }
-                    else {
-                        $message =  '<b>' . MoreI18N::xlate('Warning') . ':</b><br>' . 
-                                    I18N::translate('The custom module "%s" is activated in parallel to the %s custom module. This can lead to unintended behavior, because both of the modules have registered the same custom view "%s". It is strongly recommended to deactivate one of the modules.', 
-                                    '<b>' . $custom_module->title() . '</b>', $this->title(),  '<b>' . $view_name . '</b>');
-                    }
-                    FlashMessages::addMessage($message, 'danger');
-                }    
-                catch (RuntimeException $e) {
-                    //If no file name (i.e. view) was found, do nothing
+                //Check if the view is registered with a file path other than the current module; e.g. another moduleS probably registered it with an unknown views namespace
+                if (mb_strpos($file_name, $this->resourcesFolder()) === false) {
+                    throw new LogicException;
                 }
             }
-            if (!$alternative_view_found) {
+            catch (LogicException $e) {
 
-                $view = new View('test');
-
-                try {
-                    $file_name = $view->getFilenameForView($view_name);
-
-                    //Check if the view is registered with a file path other than the current module; e.g. another moduleS probably registered it with an unknown views namespace
-                    if (mb_strpos($file_name, $this->resourcesFolder()) === false) {
-                        throw new RuntimeException;
-                    }
-                }
-                catch (RuntimeException $e) {
-                    $message =  '<b>' . I18N::translate('Error') . ':</b><br>' .
-                                I18N::translate(
-                                    'The custom module view "%s" is not registered as replacement for the standard webtrees view. There might be another module installed, which registered the same custom view. This can lead to unintended behavior. It is strongly recommended to deactivate one of the modules. The path of the parallel view is: %s',
-                                    '<b>' . $custom_view . '</b>', '<b>' . $file_name  . '</b>');
-                    FlashMessages::addMessage($message, 'danger');
-                }
+                $message =  '<b>' . I18N::translate('Error') . ':</b><br>' .
+                            I18N::translate(
+                                'Error in custom view registration. The custom view "%s" has already been registered by another module. This can lead to unintended behavior. It is strongly recommended to deactivate one of the modules. The path of the module with the parallel view is: %s',
+                                '<b>' . View::NAMESPACE_SEPARATOR . $view_name . '</b>', '<b>' . $file_name  . '</b>');
+                FlashMessages::addMessage($message, 'danger');
             }
         }
         

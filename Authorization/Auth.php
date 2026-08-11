@@ -40,10 +40,10 @@ use Fisharebest\Webtrees\Tree;
 class Auth extends WebtreesAuth
 {
     // Privacy constants
-    public const int PRIV_PRIVATE = 2; // Allows visitors to view the item
-    public const int PRIV_USER    = 1; // Allows members to access the item
-    public const int PRIV_NONE    = 0; // Allows managers to access the item
-    public const int PRIV_HIDE    = -1; // Hide the item to all users
+    public const PRIV_PRIVATE = 2; // Allows visitors to view the item
+    public const PRIV_USER    = 1; // Allows members to access the item
+    public const PRIV_NONE    = 0; // Allows managers to access the item
+    public const PRIV_HIDE    = -1; // Hide the item to all users
 
 
     /**

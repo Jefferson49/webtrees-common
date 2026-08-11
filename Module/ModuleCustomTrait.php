@@ -33,31 +33,30 @@ use Fisharebest\Webtrees\Module\ModuleCustomTrait as WebtreesModuleCustomTrait;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Services\ModuleService;
 use Fisharebest\Webtrees\View;
+use Fisharebest\Webtrees\Webtrees;
+use Illuminate\Support\Collection;
 use Jefferson49\Webtrees\Exceptions\GithubCommunicationError;
 use Jefferson49\Webtrees\Helpers\GithubService;
 use Jefferson49\Webtrees\Internationalization\MoreI18N;
 
+use LogicException;
 use RuntimeException;
 
 
 /**
  * Trait ModuleCustomTrait - certain default implementations of ModuleCustomInterface
+ * 
+ * Consuming classes must define the following constants:
+ * CUSTOM_AUTHOR, CUSTOM_VERSION, GITHUB_REPO
+ *
  */
 trait ModuleCustomTrait 
 {
     use WebtreesModuleCustomTrait;
 
-    /**
-     * {@inheritDoc}
-     *
-     * @return string
-     *
-     * @see \Fisharebest\Webtrees\Module\AbstractModule::resourcesFolder()
-     */
-    public function resourcesFolder(): string
-    {
-        return __DIR__ . '/resources/';
-    }
+    //A list of custom views, which are registered by the module
+    private Collection $custom_view_list;
+
 
     /**
      * {@inheritDoc}
@@ -68,7 +67,7 @@ trait ModuleCustomTrait
      */
     public function customModuleAuthorName(): string
     {
-        return self::CUSTOM_AUTHOR;
+        return self::moduleCustomConstant('CUSTOM_AUTHOR');
     }
 
     /**
@@ -80,7 +79,7 @@ trait ModuleCustomTrait
      */
     public function customModuleVersion(): string
     {
-        return self::CUSTOM_VERSION;
+        return self::moduleCustomConstant('CUSTOM_VERSION');
     }
 
     /**
@@ -98,7 +97,7 @@ trait ModuleCustomTrait
 
                 try {
                     //Get latest release from GitHub
-                    return GithubService::getLatestReleaseTag(self::GITHUB_REPO);
+                    return GithubService::getLatestReleaseTag(self::moduleCustomConstant('GITHUB_REPO'));
                 }
                 catch (GithubCommunicationError $ex) {
                     // Can't connect to GitHub?
@@ -118,7 +117,7 @@ trait ModuleCustomTrait
      */
     public function customModuleSupportUrl(): string
     {
-        return 'https://github.com/' . self::GITHUB_REPO;
+        return 'https://github.com/' . self::moduleCustomConstant('GITHUB_REPO');
     }
 
     /**
@@ -136,23 +135,53 @@ trait ModuleCustomTrait
     }
 
     /**
+     * {@inheritDoc}
+     *
+     * @return string
+     *
+     * @see \Fisharebest\Webtrees\Module\AbstractModule::resourcesFolder()
+     */
+    public function resourcesFolder(): string
+    {
+        return $this->moduleFolder() . '/resources/';
+    }
+
+    /**
+     * Get the module folder
+     *
+     * @return string
+     */
+    public function moduleFolder(): string
+    {
+        $folder = $this->name();
+        $folder = substr($this->name(), 1);
+        $folder = substr($folder, 0, strlen($folder) - 1);
+        return Webtrees::MODULES_DIR . $folder;
+    }
+
+    /**
      * Get the namespace for the views
      *
      * @return string
      */
     public static function viewsNamespace(): string
     {
-        return '_' . basename(__DIR__) . '_';
+        return self::class;
     }
 
     /**
-     * Get the active module name, e.g. the name of the currently running module
-     *
-     * @return string
+     * Retrieve a required class constant from the concrete module class.
      */
-    public static function activeModuleName(): string
+    private static function moduleCustomConstant(string $name): string
     {
-        return '_' . basename(__DIR__) . '_';
+        $class = static::class;
+        $constant = $class . '::' . $name;
+
+        if (!defined($constant)) {
+            throw new LogicException(sprintf('Missing required constant %s in class %s', $name, $class));
+        }
+
+        return constant($constant);
     }
 
     /**
@@ -163,35 +192,36 @@ trait ModuleCustomTrait
     public function checkModuleVersionUpdate(): void
     {
         //If new custom module version is detected
-        if ($this->getPreference(self::PREF_MODULE_VERSION) !== self::CUSTOM_VERSION) {
-
-            //Update module files
-            if (require __DIR__ . '/update_module_files.php') {
-                $update_result = '';    
-            }
-            else {
-                $update_result = I18N::translate('Error during updating the custom module files to a new version.');                
-            }
+        if ($this->getPreference(self::PREF_MODULE_VERSION) !== self::moduleCustomConstant('CUSTOM_VERSION')) {
 
             //Update prefences stored in database
-            $update_result .= $this->updatePreferences();
+            $update_result = $this->updatePreferences();
 
             //Show flash message for error or sucessful update of preferences
             if ($update_result !== '') {
 
-                $message = I18N::translate('Error while trying to update the custom module "%s" to the new module version %s: ' . $update_result, $this->title(), self::CUSTOM_VERSION);
+                $message = I18N::translate('Error while trying to update the custom module "%s" to the new module version %s: ' . $update_result, $this->title(), self::moduleCustomConstant('CUSTOM_VERSION'));
                 FlashMessages::addMessage($message, 'danger');
             } 
             else {
-
-                $message = I18N::translate('The preferences for the custom module "%s" were sucessfully updated to the new module version %s.', $this->title(), self::CUSTOM_VERSION);
+                $message = I18N::translate('The preferences for the custom module "%s" were sucessfully updated to the new module version %s.', $this->title(), self::moduleCustomConstant('CUSTOM_VERSION'));
                 FlashMessages::addMessage($message, 'success');	    
                 
                 //Update custom module version
-                $this->setPreference(self::PREF_MODULE_VERSION, self::CUSTOM_VERSION);
+                $this->setPreference(self::PREF_MODULE_VERSION, self::moduleCustomConstant('CUSTOM_VERSION'));
             }
         }        
     }
+
+    /**
+     * Update the preferences (after new module version is detected)
+     *
+     * @return string Error message if an error occurred, otherwise empty string
+     */
+    public function updatePreferences(): string
+    {   
+        return '';
+    }    
 
     /**
      * Check availability of the registered custom views and show flash messages with warnings if any errors occur 

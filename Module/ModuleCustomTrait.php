@@ -229,7 +229,7 @@ trait ModuleCustomTrait
      */
     private function checkCustomViewAvailability() : void {
 
-        $custom_modules = new ModuleService()
+        $custom_modules = (new ModuleService())
             ->findByInterface(ModuleCustomInterface::class)
             ->filter(function ($module) {
                 return $module->name() !== $this->name();

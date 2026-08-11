@@ -50,7 +50,7 @@ class Functions
 {
 
     /**
-     * Get interface from container
+     * Get an object from the container
      *
      * @param string $id
      * 
@@ -70,10 +70,28 @@ class Functions
         catch (Exception $e) {
             return null;
         }
-    }    
+    }
 
     /**
-     * Check if container has a certain interface 
+     * Register an object in the container
+     *
+     * @param string $id
+     * @param mixed  $object
+     * 
+     * @return void
+     */
+    public static function registerInContainer(string $id, mixed $object): void {
+
+        if (version_compare(Webtrees::VERSION, '2.2.0', '>=')) {
+            Registry::container()->set($id, $object);
+        }
+        else {
+            app()->instance($id, $object);
+        }
+    }
+
+    /**
+     * Check if container has a certain interface
      *
      * @param string $id
      * 

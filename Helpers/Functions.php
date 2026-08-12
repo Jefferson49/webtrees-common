@@ -80,7 +80,7 @@ class Functions
      * 
      * @return void
      */
-    public static function registerInContainer(string $id, mixed $object): void {
+    public static function registerInContainer(string $id, $object): void {
 
         if (version_compare(Webtrees::VERSION, '2.2.0', '>=')) {
             Registry::container()->set($id, $object);

@@ -20,7 +20,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  * 
- * Extended Auth class with additional ENUM values
+ * Extended Auth class to be used for webtrees versions before 2.3
  *
  */
 
@@ -30,13 +30,9 @@ namespace Jefferson49\Webtrees\Authorization;
 
 
 /**
- * Extended Auth class with additional ENUM values, which were removed in the parent Auth class in webtrees 2.3
+ * Extended Auth class to be used for webtrees versions before 2.3
+ * This class does not define constants, because in webtrees 2.3 the constants are already defined in the parent class
  */
 class Auth extends AuthFunctions
 {
-    // Privacy constants
-    public const int PRIV_PRIVATE = 2; // Allows visitors to view the item
-    public const int PRIV_USER    = 1; // Allows members to access the item
-    public const int PRIV_NONE    = 0; // Allows managers to access the item
-    public const int PRIV_HIDE    = -1; // Hide the item to all users
 }

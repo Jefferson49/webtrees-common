@@ -20,7 +20,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  * 
- * Extended Auth class with additional ENUM values
+ * Extended Auth class with additional functions for compatibility with different webtrees versions
  *
  */
 
@@ -28,15 +28,34 @@ declare(strict_types=1);
 
 namespace Jefferson49\Webtrees\Authorization;
 
+use Fisharebest\Webtrees\Auth;
+use Fisharebest\Webtrees\Contracts\UserInterface;
+use Fisharebest\Webtrees\Webtrees;
+use Fisharebest\Webtrees\Tree;
+
 
 /**
- * Extended Auth class with additional ENUM values, which were removed in the parent Auth class in webtrees 2.3
+ * Extended Auth class with additional functions for compatibility with different webtrees versions
  */
-class Auth extends AuthFunctions
+class AuthFunctions extends Auth
 {
-    // Privacy constants
-    public const int PRIV_PRIVATE = 2; // Allows visitors to view the item
-    public const int PRIV_USER    = 1; // Allows members to access the item
-    public const int PRIV_NONE    = 0; // Allows managers to access the item
-    public const int PRIV_HIDE    = -1; // Hide the item to all users
+    /**
+     * What is the user's access level within a tree?
+     * 
+     * @param Tree           $tree
+     * @param ?UserInterface $user
+     * 
+     * @return int
+     */
+    public static function accessLevelForTree(Tree $tree, ?UserInterface $user = null): int
+    {
+        if (version_compare(Webtrees::VERSION, '2.2.6', '>')) {
+
+            $access_level = parent::accessLevel($tree, $user);
+            return $access_level->value;
+            
+        } else {
+            return parent::accessLevel($tree, $user);
+        }
+    }
 }

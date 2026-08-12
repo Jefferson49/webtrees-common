@@ -51,7 +51,7 @@ if (version_compare($local_common_library_version, $autoload_common_library_vers
         }
     }
     else {
-        $loader->addPsr4('Jefferson49\\Webtrees\\Authorization\\', __DIR__ . '/Authorization/Auth.php');
+        $loader->addPsr4('Jefferson49\\Webtrees\\Authorization\\', __DIR__ . '/Authorization');
     }
 
     $loader->addPsr4('Jefferson49\\Webtrees\\Exceptions\\', __DIR__ . '/Exceptions');

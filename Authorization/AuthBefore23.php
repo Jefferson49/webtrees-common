@@ -28,11 +28,13 @@ declare(strict_types=1);
 
 namespace Jefferson49\Webtrees\Authorization;
 
+use Fisharebest\Webtrees\Auth as WebtreesAuth;
+
 
 /**
  * Extended Auth class to be used for webtrees versions before 2.3
  * This class does not define constants, because in webtrees 2.3 the constants are already defined in the parent class
  */
-class Auth extends AuthFunctions
+class Auth extends WebtreesAuth
 {
 }

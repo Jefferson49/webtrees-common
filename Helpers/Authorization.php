@@ -28,6 +28,11 @@ declare(strict_types=1);
 
 namespace Jefferson49\Webtrees\Helpers;
 
+use Fisharebest\Webtrees\Auth;
+use Fisharebest\Webtrees\Contracts\UserInterface;
+use Fisharebest\Webtrees\Webtrees;
+use Fisharebest\Webtrees\Tree;
+
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -64,7 +69,7 @@ class Authorization
      * @throws InvalidArgumentException
      * @throws RuntimeException
      */
-    public static function generateSecurePassword($length = 12, $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_=+[]{};:,.<>?') {
+    public static function generateSecurePassword(int $length = 12, string $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_=+[]{};:,.<>?') {
 
         if ($length <= 0) {
             throw new InvalidArgumentException("Password length must be greater than zero.");
@@ -93,5 +98,25 @@ class Authorization
         }
 
         return $password;
+    }
+
+    /**
+     * What is the user's access level within a tree?
+     * 
+     * @param Tree           $tree
+     * @param ?UserInterface $user
+     * 
+     * @return int
+     */
+    public static function accessLevelForTree(Tree $tree, ?UserInterface $user = null): int
+    {
+        if (version_compare(Webtrees::VERSION, '2.2.6', '>')) {
+
+            $access_level = Auth::accessLevel($tree, $user);
+            return $access_level->value;
+            
+        } else {
+            return Auth::accessLevel($tree, $user);
+        }
     }
 }

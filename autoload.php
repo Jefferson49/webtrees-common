@@ -43,14 +43,15 @@ $local_common_library_version = $local_composer_versions['versions']['jefferson4
 //This ensures that always the latest library version is autoloaded
 if (version_compare($local_common_library_version, $autoload_common_library_version, '>')) {
 
-    if (!class_exists('Jefferson49\\Webtrees\\Authorization\\AuthFunctions')) {
-        require __DIR__ . '/Authorization/AuthFunctions.php';
+    if (version_compare(PHP_VERSION, '8.3.0', '<')) {
 
-        if (version_compare(PHP_VERSION, '8.3.0', '<')) {
-            require __DIR__ . '/Authorization/AuthBefore23.php';
-        } else {
-            require __DIR__ . '/Authorization/Auth.php';
+        if (!class_exists('Jefferson49\\Webtrees\\Authorization\\Auth')) {
+            
+            require_once __DIR__ . '/Authorization/AuthBefore23.php';
         }
+    }
+    else {
+        $loader->addPsr4('Jefferson49\\Webtrees\\Authorization\\', __DIR__ . '/Authorization/Auth.php');
     }
 
     $loader->addPsr4('Jefferson49\\Webtrees\\Exceptions\\', __DIR__ . '/Exceptions');

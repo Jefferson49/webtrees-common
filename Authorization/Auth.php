@@ -28,11 +28,13 @@ declare(strict_types=1);
 
 namespace Jefferson49\Webtrees\Authorization;
 
+use Fisharebest\Webtrees\Auth as WebtreesAuth;
+
 
 /**
  * Extended Auth class with additional ENUM values, which were removed in the parent Auth class in webtrees 2.3
  */
-class Auth extends AuthFunctions
+class Auth extends WebtreesAuth
 {
     // Privacy constants
     public const int PRIV_PRIVATE = 2; // Allows visitors to view the item

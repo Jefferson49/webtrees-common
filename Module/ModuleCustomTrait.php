@@ -252,7 +252,7 @@ trait ModuleCustomTrait
             }
             catch (LogicException $e) {
 
-                $message =  '<b>' . I18N::translate('Error') . ':</b><br>' .
+                $message =  '<b>' . MoreI18N::xlate('Error') . ':</b><br>' .
                             I18N::translate(
                                 'Error in custom view registration. The custom view "%s" has already been registered by another module. This can lead to unintended behavior. It is strongly recommended to deactivate one of the modules. The path of the module with the parallel view is: %s',
                                 '<b>' . View::NAMESPACE_SEPARATOR . $view_name . '</b>', '<b>' . $file_name  . '</b>');

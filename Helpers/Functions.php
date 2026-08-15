@@ -196,7 +196,11 @@ class Functions
     /**
      * The facts and events for this record.
      *
+     * @param GedcomRecord  $record
      * @param array<string> $filter
+     * @param bool          $sort 
+     * @param ?int          $access_level
+     * @param bool          $ignore_deleted
      *
      * @return Collection<int,Fact>
      */

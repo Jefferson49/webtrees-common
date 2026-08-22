@@ -226,22 +226,25 @@ class Functions
      *
      * @param string $path
      * @param string $name
+     * @param        $handler
+     * @param array  $middleware
      *
      * @return void
      */
-    public static function registerRoute(string $path, string $name): void {
+    public static function registerRoute(string $path, string $name, $handler = null, array $middleware = []): void {
 
         $router = Registry::routeFactory()->routeMap();
 
         if (version_compare(Webtrees::VERSION, '2.2.6', '>')) {
 
-            $router->add($path, $name);
+            $router->add($path, $name, $middleware);
             return;
         }
         else {
             $router
-            ->get($name, $path)
-            ->allows(RequestMethodInterface::METHOD_POST);
+            ->get($name, $path, $handler)
+            ->allows(RequestMethodInterface::METHOD_POST)
+            ->extras(['middleware' => $middleware]);
             return;
         }
     }

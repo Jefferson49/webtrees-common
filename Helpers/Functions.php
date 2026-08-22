@@ -19,7 +19,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
- * 
+ *
  * Functions to be used in webtrees custom modules
  *
  */
@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace Jefferson49\Webtrees\Helpers;
 
+use Fig\Http\Message\RequestMethodInterface;
 use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\Enums\AccessLevel;
 use Fisharebest\Webtrees\Fact;
@@ -53,7 +54,7 @@ class Functions
      * Get an object from the container
      *
      * @param string $id
-     * 
+     *
      * @return mixed
      */
     public static function getFromContainer(string $id) {
@@ -64,7 +65,7 @@ class Functions
             }
             else {
                 return app($id);
-            }        
+            }
         }
         //Return null if interface was not found
         catch (Exception $e) {
@@ -77,7 +78,7 @@ class Functions
      *
      * @param string $id
      * @param mixed  $object
-     * 
+     *
      * @return void
      */
     public static function registerInContainer(string $id, $object): void {
@@ -94,13 +95,13 @@ class Functions
      * Check if container has a certain interface
      *
      * @param string $id
-     * 
+     *
      * @return bool
      */
     public static function containerHas(string $id): bool {
 
-        return self::getFromContainer($id) !== null; 
-    }    
+        return self::getFromContainer($id) !== null;
+    }
 
     /**
      * Provide a webtrees module with CustomModuleLogInterface
@@ -138,11 +139,11 @@ class Functions
 
 	/**
      * Get an array [name => title] for all trees, for which the current user is manager
-     * 
+     *
      * @param Collection $trees The trees, for which the list shall be generated
      *
      * @return array            error message
-     */ 
+     */
     public static function getTreeNameTitleList(Collection $trees): array {
 
         $tree_list = [];
@@ -151,7 +152,7 @@ class Functions
             if (Auth::isManager($tree)) {
                 $tree_list[$tree->name()] = $tree->name() . ' (' . $tree->title() . ')';
             }
-        }   
+        }
 
         return $tree_list;
     }
@@ -177,17 +178,17 @@ class Functions
 
     /**
      * Return the privatized GEDCOM of a Gedcom record
-     * 
+     *
      * @param GedcomRecord $record        Gedcom structure
      * @param int          $access_level  Access level of the user
-     * 
+     *
      * @return string
      */
     public static function getPrivatizedGedcom(GedcomRecord $record, int $access_level) : string {
 
         if (version_compare(Webtrees::VERSION, '2.2.6', '>')) {
             return $record->privatizeGedcom(AccessLevel::from($access_level));
-        }        
+        }
         else {
             return $record->privatizeGedcom($access_level);
         }
@@ -198,7 +199,7 @@ class Functions
      *
      * @param GedcomRecord  $record
      * @param array<string> $filter
-     * @param bool          $sort 
+     * @param bool          $sort
      * @param ?int          $access_level
      * @param bool          $ignore_deleted
      *
@@ -214,9 +215,34 @@ class Functions
 
         if (version_compare(Webtrees::VERSION, '2.2.6', '>')) {
             return $record->facts($filter, $sort, AccessLevel::from($access_level), $ignore_deleted);
-        }        
+        }
         else {
             return $record->facts($filter, $sort, $access_level, $ignore_deleted);
+        }
+    }
+
+    /**
+     * Register a route
+     *
+     * @param string $path
+     * @param string $name
+     *
+     * @return void
+     */
+    public static function registerRoute(string $path, string $name): void {
+
+        $router = Registry::routeFactory()->routeMap();
+
+        if (version_compare(Webtrees::VERSION, '2.2.6', '>')) {
+
+            $router->add($path, $name);
+            return;
+        }
+        else {
+            $router
+            ->get($name, $path)
+            ->allows(RequestMethodInterface::METHOD_POST);
+            return;
         }
     }
 }

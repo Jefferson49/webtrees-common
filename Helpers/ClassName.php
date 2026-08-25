@@ -42,10 +42,17 @@ class ClassName
     public const COPY_FACT       = 'CopyFact';
     public const DELETE_FACT     = 'DeleteFact';
     public const EDIT_FACT       = 'EditFact';
+    public const FAMILY_PAGE     = 'FamilyPage';
     public const HOME_PAGE       = 'HomePage';
+    public const INDIVIDUAL_PAGE = 'IndividualPage';
     public const LOGIN_PAGE      = 'LoginPage';
     public const LOGOUT_PAGE     = 'LogoutPage';
+    public const MEDIA_PAGE      = 'MediaPage';
+    public const NOTE_PAGE       = 'NotePage';
     public const PENDING_CHANGES = 'PendingChanges';
+    public const REPOSITORY_PAGE = 'RepositoryPage';
+    public const SOURCE_PAGE     = 'SourcePage';
+    public const SUBMITTER_PAGE  = 'SubmitterPage';
 
 
     private const CLASS_NAMES = [
@@ -73,9 +80,17 @@ class ClassName
             '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\EditFactPage::class,
             '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\EditFact::class,
         ],
+        self::FAMILY_PAGE => [
+            '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\FamilyPage::class,
+            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\FamilyPage::class,
+        ],
         self::HOME_PAGE => [
             '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\HomePage::class,
             '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\HomePage::class,
+        ],
+        self::INDIVIDUAL_PAGE => [
+            '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\IndividualPage::class,
+            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\IndividualPage::class,
         ],
         self::LOGIN_PAGE => [
             '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\LoginPage::class,
@@ -85,9 +100,29 @@ class ClassName
             '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\LogoutPage::class,
             '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\Logout::class,
         ],
+        self::MEDIA_PAGE => [
+            '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\MediaPage::class,
+            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\MediaPage::class,
+        ],
+        self::NOTE_PAGE => [
+            '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\NotePage::class,
+            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\NotePage::class,
+        ],
         self::PENDING_CHANGES => [
             '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\PendingChanges::class,
             '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\PendingChanges::class,
+        ],
+        self::REPOSITORY_PAGE => [
+            '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\RepositoryPage::class,
+            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\RepositoryPage::class,
+        ],
+        self::SOURCE_PAGE => [
+            '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\SourcePage::class,
+            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\SourcePage::class,
+        ],
+        self::SUBMITTER_PAGE => [
+            '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\SubmitterPage::class,
+            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\SubmitterPage::class,
         ],
     ];
 

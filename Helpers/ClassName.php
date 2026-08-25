@@ -36,12 +36,19 @@ use Fisharebest\Webtrees\Webtrees;
  */
 class ClassName
 {
+    public const ACCOUNT_EDIT  = 'AccountEdit';
     public const DATA_FIX_PAGE = 'DataFixPage';
     public const CONTROL_PANEL = 'ControlPanel';
     public const HOME_PAGE     = 'HomePage';
+    public const LOGIN_PAGE    = 'LoginPage';
+    public const LOGOUT_PAGE   = 'LogoutPage';
 
 
     private const CLASS_NAMES = [
+        self::ACCOUNT_EDIT => [
+            '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\AccountEdit::class,
+            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\AccountEdit::class,
+        ],
         self::CONTROL_PANEL => [
             '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\ControlPanel::class,
             '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\ControlPanel::class,
@@ -53,6 +60,14 @@ class ClassName
         self::HOME_PAGE => [
             '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\HomePage::class,
             '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\HomePage::class,
+        ],
+        self::LOGIN_PAGE => [
+            '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\LoginPage::class,
+            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\LoginPage::class,
+        ],
+        self::LOGOUT_PAGE => [
+            '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\LogoutPage::class,
+            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\LogoutPage::class,
         ],
     ];
 

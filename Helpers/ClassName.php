@@ -36,8 +36,10 @@ use Fisharebest\Webtrees\Webtrees;
  */
 class ClassName
 {
-    public const CONTROL_PANEL = 'ControlPanel';
     public const DATA_FIX_PAGE = 'DataFixPage';
+    public const CONTROL_PANEL = 'ControlPanel';
+    public const HOME_PAGE     = 'HomePage';
+
 
     private const CLASS_NAMES = [
         self::CONTROL_PANEL => [
@@ -47,6 +49,10 @@ class ClassName
         self::DATA_FIX_PAGE => [
             '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\DataFixPage::class,
             '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\DataFixPage::class,
+        ],
+        self::HOME_PAGE => [
+            '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\HomePage::class,
+            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\HomePage::class,
         ],
     ];
 

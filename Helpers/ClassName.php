@@ -97,7 +97,7 @@ class ClassName
             '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\Login::class,
         ],
         self::LOGOUT_PAGE => [
-            '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\LogoutPage::class,
+            '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\Logout::class,
             '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\Logout::class,
         ],
         self::MEDIA_PAGE => [

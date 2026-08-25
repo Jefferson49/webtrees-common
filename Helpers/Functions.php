@@ -186,7 +186,7 @@ class Functions
      */
     public static function getPrivatizedGedcom(GedcomRecord $record, int $access_level) : string {
 
-        if (version_compare(Webtrees::VERSION, '2.2.6', '>')) {
+        if (version_compare(Webtrees::VERSION, '2.3', '>=')) {
             return $record->privatizeGedcom(AccessLevel::from($access_level));
         }
         else {
@@ -213,7 +213,7 @@ class Functions
         bool $ignore_deleted = false
     ): Collection {
 
-        if (version_compare(Webtrees::VERSION, '2.2.6', '>')) {
+        if (version_compare(Webtrees::VERSION, '2.3', '>=')) {
             return $record->facts($filter, $sort, AccessLevel::from($access_level), $ignore_deleted);
         }
         else {
@@ -235,7 +235,7 @@ class Functions
 
         $router = Registry::routeFactory()->routeMap();
 
-        if (version_compare(Webtrees::VERSION, '2.2.6', '>')) {
+        if (version_compare(Webtrees::VERSION, '2.3', '>=')) {
 
             $router->add($path, $name, $middleware);
             return;

@@ -94,7 +94,7 @@ class MoreI18N {
             return [];
         }
 
-        if (version_compare(Webtrees::VERSION, '2.2.6', '>')) {
+        if (version_compare(Webtrees::VERSION, '2.3', '>=')) {
 
             $stream       = fopen($mo_file, 'rb');
             $translations = Translation::fromMoStream($stream)->toArray();

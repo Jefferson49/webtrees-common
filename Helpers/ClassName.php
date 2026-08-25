@@ -41,12 +41,12 @@ class ClassName
 
     private const CLASS_NAMES = [
         self::CONTROL_PANEL => [
-            '2.1'   =>  \Fisharebest\Webtrees\Http\RequestHandlers\ControlPanel::class,
-            '2.2.6' =>  \Fisharebest\Webtrees\Http\Controllers\ControlPanel::class,
+            '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\ControlPanel::class,
+            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\ControlPanel::class,
         ],
         self::DATA_FIX_PAGE => [
-            '2.1'   =>  \Fisharebest\Webtrees\Http\RequestHandlers\DataFixPage::class,
-            '2.2.6' =>  \Fisharebest\Webtrees\Http\Controllers\DataFixPage::class,
+            '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\DataFixPage::class,
+            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\DataFixPage::class,
         ],
     ];
 
@@ -59,8 +59,8 @@ class ClassName
      */
     public static function get(string $name) : string {
 
-        if (version_compare(Webtrees::VERSION, '2.2.6', '>')) {
-            return self::CLASS_NAMES[$name]['2.2.6'] ?? '';
+        if (version_compare(Webtrees::VERSION, '2.3', '>=')) {
+            return self::CLASS_NAMES[$name]['2.3'] ?? '';
         } else {
             return self::CLASS_NAMES[$name]['2.1'] ?? '';
         }

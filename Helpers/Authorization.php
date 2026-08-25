@@ -112,7 +112,7 @@ class Authorization
      */
     public static function accessLevelForTree(Tree $tree, ?UserInterface $user = null): int
     {
-        if (version_compare(Webtrees::VERSION, '2.2.6', '>')) {
+        if (version_compare(Webtrees::VERSION, '2.3', '>=')) {
 
             $access_level = Auth::accessLevel($tree, $user);
             return $access_level->value;
@@ -132,7 +132,7 @@ class Authorization
      */
     public static function canShowRecord(GedcomRecord $record, int $access_level): bool
     {
-        if (version_compare(Webtrees::VERSION, '2.2.6', '>')) {
+        if (version_compare(Webtrees::VERSION, '2.3', '>=')) {
             return $record->canShow(AccessLevel::from($access_level));
         }        
         else {

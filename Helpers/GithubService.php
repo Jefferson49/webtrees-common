@@ -267,7 +267,7 @@ class GithubService
      */
     public static function getResponse(string $url, string $github_api_token = ''): ResponseInterface
     {
-        if (version_compare(Webtrees::VERSION, '2.2.6', '>')) {
+        if (version_compare(Webtrees::VERSION, '2.3', '>=')) {
             try {
                 $http_client     = Registry::container()->get(ClientInterface::class);
                 $request_factory = Registry::container()->get(RequestFactoryInterface::class);

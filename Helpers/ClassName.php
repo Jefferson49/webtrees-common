@@ -36,26 +36,42 @@ use Fisharebest\Webtrees\Webtrees;
  */
 class ClassName
 {
-    public const ACCOUNT_EDIT  = 'AccountEdit';
-    public const DATA_FIX_PAGE = 'DataFixPage';
-    public const CONTROL_PANEL = 'ControlPanel';
-    public const HOME_PAGE     = 'HomePage';
-    public const LOGIN_PAGE    = 'LoginPage';
-    public const LOGOUT_PAGE   = 'LogoutPage';
+    public const ACCOUNT_EDIT    = 'AccountEdit';
+    public const DATA_FIX_PAGE   = 'DataFixPage';
+    public const CONTROL_PANEL   = 'ControlPanel';
+    public const COPY_FACT       = 'CopyFact';
+    public const DELETE_FACT     = 'DeleteFact';
+    public const EDIT_FACT       = 'EditFact';
+    public const HOME_PAGE       = 'HomePage';
+    public const LOGIN_PAGE      = 'LoginPage';
+    public const LOGOUT_PAGE     = 'LogoutPage';
+    public const PENDING_CHANGES = 'PendingChanges';
 
 
     private const CLASS_NAMES = [
         self::ACCOUNT_EDIT => [
             '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\AccountEdit::class,
-            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\AccountEdit::class,
+            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\Account::class,
         ],
         self::CONTROL_PANEL => [
             '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\ControlPanel::class,
             '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\ControlPanel::class,
         ],
+        self::COPY_FACT => [
+            '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\CopyFact::class,
+            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\CopyFact::class,
+        ],
         self::DATA_FIX_PAGE => [
             '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\DataFixPage::class,
             '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\DataFixPage::class,
+        ],
+        self::DELETE_FACT => [
+            '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\DeleteFact::class,
+            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\DeleteFact::class,
+        ],
+        self::EDIT_FACT => [
+            '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\EditFactPage::class,
+            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\EditFact::class,
         ],
         self::HOME_PAGE => [
             '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\HomePage::class,
@@ -63,11 +79,15 @@ class ClassName
         ],
         self::LOGIN_PAGE => [
             '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\LoginPage::class,
-            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\LoginPage::class,
+            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\Login::class,
         ],
         self::LOGOUT_PAGE => [
             '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\LogoutPage::class,
-            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\LogoutPage::class,
+            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\Logout::class,
+        ],
+        self::PENDING_CHANGES => [
+            '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\PendingChanges::class,
+            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\PendingChanges::class,
         ],
     ];
 

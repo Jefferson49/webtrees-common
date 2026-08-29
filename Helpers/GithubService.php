@@ -19,7 +19,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
- * 
+ *
  * GitHub services to be used in webtrees custom modules
  *
  */
@@ -38,6 +38,7 @@ use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Jefferson49\Webtrees\Exceptions\GithubCommunicationError;
+use Throwable;
 
 
 /**
@@ -52,7 +53,7 @@ class GithubService
      * @param string $github_api_token   A GitHub API token, to allow a higher frequency of API requests
      *
      * @throws GithubCommunicationError  In case of a communcation error with GitHub
-     *  
+     *
      * @return string
      */
     public static function getLatestReleaseTag(string $github_repo, string $github_api_token = ''): string
@@ -65,7 +66,7 @@ class GithubService
 
             if ($response->getStatusCode() === StatusCodeInterface::STATUS_OK) {
                 $content = $response->getBody()->getContents();
-                
+
                 if (preg_match('/"tag_name":"([^"]+?)"/', $content, $matches) === 1) {
                     return $matches[1];
                 }
@@ -77,14 +78,14 @@ class GithubService
 
     /**
      * Where can we download a release of the GitHub repository
-     * 
+     *
      * @param string $github_repo        The GitHub repository, e.g. 'Jefferson49/webtrees-common'
      * @param string $version            The version of the module; latest version if empty
      * @param string $tag_prefix         A prefix for the verison tag, e.g. 'v' in case of 'v1.2.3'
      * @param string $github_api_token   A GitHub API token, to allow a higher frequency of API requests
-     * 
+     *
      * @throws GithubCommunicationError  In case of communcation error with GitHub
-     * 
+     *
      * @return string
      */
     public static function downloadUrl(string $github_repo, string $version, string $tag_prefix, string $github_api_token = ''): string
@@ -98,7 +99,7 @@ class GithubService
             //If version does not start with prefix, add prefix
             if (substr($version, 0, strlen($tag_prefix)) !== $tag_prefix) {
                 $version = $tag_prefix . $version;
-            } 
+            }
         }
 
         $download_url   = '';
@@ -118,7 +119,7 @@ class GithubService
 
         if ($response->getStatusCode() === StatusCodeInterface::STATUS_OK) {
             $content = $response->getBody()->getContents();
-            
+
             if (preg_match('/"browser_download_url":"([^"]+?)"/', $content, $matches) === 1) {
                 $download_url = $matches[1];
             }
@@ -134,12 +135,12 @@ class GithubService
      * Get the text of a file from a GitHub repository
      *
      * @param string $repo              The GitHub repository, e.g. 'Jefferson49/webtrees-common'
-     * @param string $branch            The GitHub branch
+     * @param string $branch            The GitHub tag or branch
      * @param string $path              The path on GitHub including the file name
      * @param string $github_api_token  A GitHub API token, to allow a higher frequency of API requests
      *
      * @throws GithubCommunicationError  In case of a communcation error with GitHub
-     *  
+     *
      * @return string
      */
     public static function getTextFileContent(string $repo, string $branch, string $path, string $github_api_token = ''): string
@@ -168,7 +169,7 @@ class GithubService
     /**
      * Get combined release information: latest version tag and maximum download count
      * across the most recent releases.
-     * 
+     *
      * This method fetches multiple releases in a single API call, extracting both
      * the latest version tag and the maximum download count (as a proxy for popularity).
      *
@@ -177,14 +178,19 @@ class GithubService
      * @param int    $release_count      The number of recent releases to consider
      *
      * @throws GithubCommunicationError  In case of a communication error with GitHub
-     *  
+     *
      * @return array{tag: string, max_downloads: int}  The latest tag and max download count (-1 if unavailable)
      */
     public static function getRecentReleasesInfo(string $github_repo, string $github_api_token = '', int $release_count = 3): array
     {
         $github_api_url = 'https://api.github.com/repos/' . $github_repo . '/releases?per_page=' . $release_count;
 
-        $result = ['tag' => '', 'max_downloads' => -1];
+        //Default result
+        $result = [
+            'tag' => '',
+            'published_at' => '',
+            'max_downloads' => -1,
+        ];
 
         if ($github_repo === '') {
             return $result;
@@ -202,6 +208,10 @@ class GithubService
             // Latest version tag is from the first (most recent) release
             if (isset($releases[0]['tag_name'])) {
                 $result['tag'] = $releases[0]['tag_name'];
+            }
+
+            if (isset($releases[0]['published_at'])) {
+                $result['published_at'] = $releases[0]['published_at'];
             }
 
             // Max download count across all fetched releases
@@ -234,7 +244,7 @@ class GithubService
      * @param string $github_api_token   A GitHub API token, to allow a higher frequency of API requests
      *
      * @throws GithubCommunicationError  In case of a communcation error with GitHub
-     *  
+     *
      * @return string
      */
     public static function getLatestReleaseNotes(string $github_repo, string $github_api_token = ''): string
@@ -253,7 +263,7 @@ class GithubService
         }
 
         return '';
-    }    
+    }
 
     /**
      * Create a request to GitHub and return the response
@@ -262,7 +272,7 @@ class GithubService
      * @param string $github_api_token   A GitHub API token, to allow a higher frequency of API requests
      *
      * @throws GithubCommunicationError  In case of a communcation error with GitHub
-     *  
+     *
      * @return string
      */
     public static function getResponse(string $url, string $github_api_token = ''): ResponseInterface
@@ -305,5 +315,5 @@ class GithubService
                 throw new GithubCommunicationError($ex->getMessage());
             }
         }
-    }    
+    }
 }

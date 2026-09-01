@@ -36,29 +36,36 @@ use Fisharebest\Webtrees\Webtrees;
  */
 class ClassName
 {
-    public const ACCOUNT_EDIT     = 'AccountEdit';
-    public const DATA_FIX_PAGE    = 'DataFixPage';
-    public const CONTROL_PANEL    = 'ControlPanel';
-    public const COPY_FACT        = 'CopyFact';
-    public const DELETE_FACT      = 'DeleteFact';
-    public const EDIT_FACT        = 'EditFact';
-    public const FAMILY_PAGE      = 'FamilyPage';
-    public const HOME_PAGE        = 'HomePage';
-    public const INDIVIDUAL_PAGE  = 'IndividualPage';
-    public const LOGIN_ACTION     = 'LoginAction';
-    public const LOGIN_PAGE       = 'LoginPage';
-    public const LOGOUT_PAGE      = 'LogoutPage';
-    public const MEDIA_PAGE       = 'MediaPage';
-    public const NOTE_PAGE        = 'NotePage';
-    public const PASSWORD_REQUEST = 'PasswordRequest';
-    public const PENDING_CHANGES  = 'PendingChanges';
-    public const REGISTER         = 'RegisterPage';
-    public const REPOSITORY_PAGE  = 'RepositoryPage';
-    public const SOURCE_PAGE      = 'SourcePage';
-    public const SUBMITTER_PAGE   = 'SubmitterPage';
+    public const ACCOUNT_DELETE      = 'AccountDelete';
+    public const ACCOUNT_EDIT        = 'AccountEdit';
+    public const DATA_FIX_PAGE       = 'DataFixPage';
+    public const CONTROL_PANEL       = 'ControlPanel';
+    public const COPY_FACT           = 'CopyFact';
+    public const DELETE_FACT         = 'DeleteFact';
+    public const EDIT_FACT           = 'EditFact';
+    public const FAMILY_PAGE         = 'FamilyPage';
+    public const HOME_PAGE           = 'HomePage';
+    public const INDIVIDUAL_PAGE     = 'IndividualPage';
+    public const LOGIN_ACTION        = 'LoginAction';
+    public const LOGIN_PAGE          = 'LoginPage';
+    public const LOGOUT_PAGE         = 'LogoutPage';
+    public const MEDIA_PAGE          = 'MediaPage';
+    public const NOTE_PAGE           = 'NotePage';
+    public const PASSWORD_REQUEST    = 'PasswordRequest';
+    public const PASSWORD_RESET      = 'PasswordReset';
+    public const PENDING_CHANGES     = 'PendingChanges';
+    public const REGISTER            = 'RegisterPage';
+    public const REPOSITORY_PAGE     = 'RepositoryPage';
+    public const SOURCE_PAGE         = 'SourcePage';
+    public const SUBMITTER_PAGE      = 'SubmitterPage';
+    public const UPGRADE_WIZARD_PAGE = 'UpgradeWizardPage';
 
 
     private const CLASS_NAMES = [
+        self::ACCOUNT_DELETE => [
+            '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\AccountDelete::class,
+            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\Account::class,
+        ],
         self::ACCOUNT_EDIT => [
             '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\AccountEdit::class,
             '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\Account::class,
@@ -119,6 +126,10 @@ class ClassName
             '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\PasswordRequestPage::class,
             '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\PasswordRequest::class,
         ],
+        self::PASSWORD_RESET => [
+            '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\PasswordResetPage::class,
+            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\PasswordReset::class,
+        ],
         self::PENDING_CHANGES => [
             '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\PendingChanges::class,
             '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\PendingChanges::class,
@@ -138,6 +149,10 @@ class ClassName
         self::SUBMITTER_PAGE => [
             '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\SubmitterPage::class,
             '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\SubmitterPage::class,
+        ],
+        self::UPGRADE_WIZARD_PAGE => [
+            '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\UpgradeWizardPage::class,
+            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\UpgradeWizardPage::class,
         ],
     ];
 

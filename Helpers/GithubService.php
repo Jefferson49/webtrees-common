@@ -28,6 +28,8 @@ declare(strict_types=1);
 
 namespace Jefferson49\Webtrees\Helpers;
 
+use Composer\Semver\Comparator;
+use Composer\Semver\VersionParser;
 use Fig\Http\Message\StatusCodeInterface;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Webtrees;
@@ -38,7 +40,9 @@ use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Jefferson49\Webtrees\Exceptions\GithubCommunicationError;
-use Throwable;
+
+use InvalidArgumentException;
+use UnexpectedValueException;
 
 
 /**
@@ -51,14 +55,67 @@ class GithubService
      *
      * @param string $github_repo        The GitHub repository, e.g. 'Jefferson49/webtrees-common'
      * @param string $github_api_token   A GitHub API token, to allow a higher frequency of API requests
+     * @param string $below_tag          If provided, the latest release below this version will be returned
      *
      * @throws GithubCommunicationError  In case of a communcation error with GitHub
      *
      * @return string
      */
-    public static function getLatestReleaseTag(string $github_repo, string $github_api_token = ''): string
+    public static function getLatestReleaseTag(string $github_repo, string $github_api_token = '', string $below_tag = ''): string
     {
         if ($github_repo !== '') {
+
+            if ($below_tag !== '') {
+                $version_parser = new VersionParser();
+
+                try {
+                    $below_version = $version_parser->normalize($below_tag);
+                } catch (UnexpectedValueException) {
+                    throw new InvalidArgumentException('Invalid version format for $below_tag: ' . $below_tag);
+                }
+
+                $latest_tag = '';
+                $latest_version = '';
+
+                for ($page = 1; ; $page++) {
+                    $github_api_url = 'https://api.github.com/repos/' . $github_repo . '/tags?per_page=100&page=' . $page;
+                    $response = self::getResponse($github_api_url, $github_api_token);
+
+                    if ($response->getStatusCode() !== StatusCodeInterface::STATUS_OK) {
+                        throw new GithubCommunicationError('Error occurred while fetching release tags from GitHub API');
+                    }
+
+                    $tags = json_decode($response->getBody()->getContents(), true);
+
+                    if (!is_array($tags) || $tags === []) {
+                        break;
+                    }
+
+                    foreach ($tags as $tag) {
+                        if (!is_array($tag) || !isset($tag['name']) || !is_string($tag['name'])) {
+                            continue;
+                        }
+
+                        try {
+                            $tag_version = $version_parser->normalize($tag['name']);
+                        } catch (UnexpectedValueException) {
+                            continue;
+                        }
+
+                        if (Comparator::lessThan($tag_version, $below_version)
+                            && ($latest_version === '' || Comparator::greaterThan($tag_version, $latest_version))) {
+                            $latest_tag = $tag['name'];
+                            $latest_version = $tag_version;
+                        }
+                    }
+
+                    if (count($tags) < 100) {
+                        break;
+                    }
+                }
+
+                return $latest_tag;
+            }
 
             $github_api_url = 'https://api.github.com/repos/'. $github_repo . '/releases/latest';
 
@@ -175,13 +232,14 @@ class GithubService
      *
      * @param string $github_repo        The GitHub repository, e.g. 'Jefferson49/webtrees-common'
      * @param string $github_api_token   A GitHub API token, to allow a higher frequency of API requests
+     * @param string $below_tag          If provided, only consider releases below this tag
      * @param int    $release_count      The number of recent releases to consider
      *
      * @throws GithubCommunicationError  In case of a communication error with GitHub
      *
      * @return array{tag: string, max_downloads: int}  The latest tag and max download count (-1 if unavailable)
      */
-    public static function getRecentReleasesInfo(string $github_repo, string $github_api_token = '', int $release_count = 3): array
+    public static function getRecentReleasesInfo(string $github_repo, string $github_api_token = '', string $below_tag = '', int $release_count = 3): array
     {
         $github_api_url = 'https://api.github.com/repos/' . $github_repo . '/releases?per_page=' . $release_count;
 
@@ -205,17 +263,22 @@ class GithubService
                 return $result;
             }
 
-            // Latest version tag is from the first (most recent) release
-            if (isset($releases[0]['tag_name'])) {
-                $result['tag'] = $releases[0]['tag_name'];
-            }
-
             if (isset($releases[0]['published_at'])) {
                 $result['published_at'] = $releases[0]['published_at'];
             }
 
             // Max download count across all fetched releases
             $max_downloads = 0;
+            $version_parser = new VersionParser();
+
+            if ($below_tag !== '') {
+                try {
+                    $below_tag = $version_parser->normalize($below_tag);
+                } catch (UnexpectedValueException) {
+                    // If below tag is no valid version format, ignore the filter
+                    $below_tag = '';
+                }
+            }
 
             foreach ($releases as $release) {
                 $release_downloads = 0;
@@ -228,6 +291,24 @@ class GithubService
 
                 if ($release_downloads > $max_downloads) {
                     $max_downloads = $release_downloads;
+                }
+
+                // Get latest version; also consider the $below_tag parameter to filter releases
+                if (isset($release['tag_name']) && is_string($release['tag_name'])) {
+                    try {
+                        $release_tag = $version_parser->normalize($release['tag_name']);
+                    } catch (UnexpectedValueException) {
+                        continue;
+                    }
+
+                    if ($below_tag !== '' && !Comparator::lessThan($release_tag, $below_tag)) {
+                        // Skip releases that are not below the specified tag
+                        continue;
+                    }
+                    // Update the latest tag if the current release is newer
+                    if (!isset($result['tag']) || Comparator::greaterThan($release_tag  , $result['tag'])) {
+                        $result['tag'] = $release['tag_name'];
+                    }
                 }
             }
 

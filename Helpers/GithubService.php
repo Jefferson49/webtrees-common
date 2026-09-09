@@ -59,12 +59,13 @@ class GithubService
      *
      * @throws GithubCommunicationError  In case of a communcation error with GitHub
      *
-     * @return string
+     * @return string                    The tag of the latest release below the specified version, or an empty string if no such release exists
      */
     public static function getLatestReleaseTag(string $github_repo, string $github_api_token = '', string $below_tag = ''): string
     {
         if ($github_repo !== '') {
 
+            //If we need to search for a version below a certain version, we need to iterate through the releases and compare the versions
             if ($below_tag !== '') {
                 $version_parser = new VersionParser();
 
@@ -74,11 +75,10 @@ class GithubService
                     throw new InvalidArgumentException('Invalid version format for $below_tag: ' . $below_tag);
                 }
 
-                $latest_tag = '';
-                $latest_version = '';
-
+                //We iterate through the releases returned by the GitHub API.
+                //Releases are in reverse chronological order, with the newest release first
                 for ($page = 1; ; $page++) {
-                    $github_api_url = 'https://api.github.com/repos/' . $github_repo . '/tags?per_page=100&page=' . $page;
+                    $github_api_url = 'https://api.github.com/repos/' . $github_repo . '/tags?per_page=10&page=' . $page;
                     $response = self::getResponse($github_api_url, $github_api_token);
 
                     if ($response->getStatusCode() !== StatusCodeInterface::STATUS_OK) {
@@ -102,21 +102,23 @@ class GithubService
                             continue;
                         }
 
-                        if (Comparator::lessThan($tag_version, $below_version)
-                            && ($latest_version === '' || Comparator::greaterThan($tag_version, $latest_version))) {
-                            $latest_tag = $tag['name'];
-                            $latest_version = $tag_version;
+                        if (Comparator::lessThan($tag_version, $below_version)) {
+
+                            //Since the tags are in reverse chronological order, we can stop searching once we find the first tag that is less than the below_version
+                            return $tag['name'];
                         }
                     }
 
-                    if (count($tags) < 100) {
+                    if (count($tags) < 10) {
                         break;
                     }
                 }
 
-                return $latest_tag;
+                //If we did not find anything below the specified version, return empty string
+                return '';
             }
 
+            //If we do not need to search for a version below a certain version, we retrieve the latest release
             $github_api_url = 'https://api.github.com/repos/'. $github_repo . '/releases/latest';
 
             $response = self::getResponse($github_api_url, $github_api_token);
@@ -280,6 +282,8 @@ class GithubService
                 }
             }
 
+            //We iterate through the releases returned by the GitHub API.
+            //Releases are in reverse chronological order, with the newest release first
             foreach ($releases as $release) {
                 $release_downloads = 0;
 
@@ -305,8 +309,9 @@ class GithubService
                         // Skip releases that are not below the specified tag
                         continue;
                     }
-                    // Update the latest tag if the current release is newer
-                    if (!isset($result['tag']) || Comparator::greaterThan($release_tag  , $result['tag'])) {
+
+                    //Since the tags are in reverse chronological order, we can stop searching once we find the first tag that is less than the below_version
+                    if ($result['tag'] === '') {
                         $result['tag'] = $release['tag_name'];
                     }
                 }

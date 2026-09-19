@@ -19,10 +19,10 @@
  * GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
- * 
- * 
+ *
+ *
  * Autoload the library for common code between webtrees custom modules
- * 
+ *
  */
 
 $search = str_replace('/', DIRECTORY_SEPARATOR,'/jefferson49/webtrees-common');
@@ -39,14 +39,14 @@ catch (\OutOfBoundsException $e) {
 $local_composer_versions = require $dir . '/composer/installed.php';
 $local_common_library_version = $local_composer_versions['versions']['jefferson49/webtrees-common']['version'];
 
-//If the found library is later than the current autoload version, prepend the found library to autoload
+//If the found library is later or equal to the current autoload version, prepend the found library to autoload
 //This ensures that always the latest library version is autoloaded
-if (version_compare($local_common_library_version, $autoload_common_library_version, '>')) {
+if (version_compare($local_common_library_version, $autoload_common_library_version, '>=')) {
 
     if (version_compare(PHP_VERSION, '8.3.0', '<')) {
 
         if (!class_exists('Jefferson49\\Webtrees\\Authorization\\Auth')) {
-            
+
             require_once __DIR__ . '/Authorization/AuthBefore23.php';
         }
     }

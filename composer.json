@@ -10,10 +10,5 @@
     "license": "GPL-3.0",
     "require": {
         "php": ">=7.4"
-    },
-    "autoload": {
-        "files": [
-            "autoload.php"
-        ]
     }
 }

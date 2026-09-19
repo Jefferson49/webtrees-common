@@ -57,6 +57,7 @@ class GithubService
      * @param string $github_api_token   A GitHub API token, to allow a higher frequency of API requests
      * @param string $below_tag          If provided, the latest release below this version will be returned
      *
+     * @throws InvalidArgumentException  If $below_tag is not a valid version format
      * @throws GithubCommunicationError  In case of a communcation error with GitHub
      *
      * @return string                    The tag of the latest release below the specified version, or an empty string if no such release exists

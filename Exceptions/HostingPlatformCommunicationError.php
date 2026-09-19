@@ -2,10 +2,10 @@
 
 /**
  * webtrees: online genealogy
- * Copyright (C) 2025 webtrees development team
+ * Copyright (C) 2026 webtrees development team
  *                    <http://webtrees.net>
  *
- * Copyright (C) 2025 Markus Hemprich
+ * Copyright (C) 2026 Markus Hemprich
  *                    <http://www.familienforschung-hemprich.de>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,7 +20,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  *
- *  An exception for GitHub communication errors to be used in webtrees custom modules
+ * An exception for communication errors with hosting platforms to be used in webtrees custom modules
  *
  */
 
@@ -28,9 +28,11 @@ declare(strict_types=1);
 
 namespace Jefferson49\Webtrees\Exceptions;
 
+use Exception;
+
 /**
- * GithubCommunicationError
+ * HostingPlatformCommunicationError
  */
-class GithubCommunicationError extends HostingPlatformCommunicationError
+class HostingPlatformCommunicationError extends Exception
 {
 }

@@ -64,7 +64,7 @@ class ClassName
     private const CLASS_NAMES = [
         self::ACCOUNT_DELETE => [
             '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\AccountDelete::class,
-            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\Account::class,
+            '2.3' =>  \Fisharebest\Webtrees\Http\Controllers\AccountDelete::class,
         ],
         self::ACCOUNT_EDIT => [
             '2.1' =>  \Fisharebest\Webtrees\Http\RequestHandlers\AccountEdit::class,

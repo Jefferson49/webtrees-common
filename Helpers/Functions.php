@@ -171,8 +171,9 @@ class Functions
      */
     final public static function getPreferenceForModule(string $module_name, string $setting_name, string $default = ''): string
     {
-        //Code from: webtrees AbstractModule->getPreference
-        //Last check: 2026-04-05
+        //Code from:  Fisharebest\Webtrees\Module\AbstractModule->getPreference
+        //Last check: 2026-09-26
+
         return DB::table('module_setting')
             ->where('module_name', '=', $module_name)
             ->where('setting_name', '=', $setting_name)

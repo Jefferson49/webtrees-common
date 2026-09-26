@@ -40,8 +40,12 @@ use Fisharebest\Webtrees\User;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Support\Collection;
 use Jefferson49\Webtrees\Log\CustomModuleLogInterface;
+use Psr\Clock\ClockInterface;
+
 
 use Exception;
+
+use function time;
 
 
 /**
@@ -49,7 +53,6 @@ use Exception;
  */
 class Functions
 {
-
     /**
      * Get an object from the container
      *
@@ -246,6 +249,24 @@ class Functions
             ->allows(RequestMethodInterface::METHOD_POST)
             ->extras(['middleware' => $middleware]);
             return;
+        }
+    }
+
+    /**
+     * Get the currrent timestamp
+     *
+     * @return string
+     */
+    public static function getCurrentTimestamp(): string {
+
+        if (version_compare(Webtrees::VERSION, '2.3', '>=')) {
+
+            $clock = Registry::container()->get(ClockInterface::class);
+
+            return (string) $clock->now()->getTimestamp();
+        }
+        else {
+            return (string) time();
         }
     }
 }

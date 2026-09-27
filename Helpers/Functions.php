@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace Jefferson49\Webtrees\Helpers;
 
+use Exception;
 use Fig\Http\Message\RequestMethodInterface;
 use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\Enums\AccessLevel;
@@ -39,11 +40,11 @@ use Fisharebest\Webtrees\Webtrees;
 use Fisharebest\Webtrees\User;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Support\Collection;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Jefferson49\Webtrees\Log\CustomModuleLogInterface;
 use Psr\Clock\ClockInterface;
-
-
-use Exception;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 
 use function time;
 
@@ -58,21 +59,19 @@ class Functions
      *
      * @param string $id
      *
+     * @throws NotFoundExceptionInterface   No entry was found for this identifier (webtrees >= 2.2.0)
+     * @throws ContainerExceptionInterface  Error while retrieving the entry       (webtrees >= 2.2.0)
+     * @throws BindingResolutionException   No entry was found for this identifier (webtrees < 2.2.0)
+     *
      * @return mixed
      */
-    public static function getFromContainer(string $id) {
+    public static function getFromContainer(string $id): mixed {
 
-        try {
-            if (version_compare(Webtrees::VERSION, '2.2.0', '>=')) {
-                return Registry::container()->get($id);
-            }
-            else {
-                return app($id);
-            }
+        if (version_compare(Webtrees::VERSION, '2.2.0', '>=')) {
+            return Registry::container()->get($id);
         }
-        //Return null if interface was not found
-        catch (Exception $e) {
-            return null;
+        else {
+            return app($id);
         }
     }
 
@@ -103,7 +102,11 @@ class Functions
      */
     public static function containerHas(string $id): bool {
 
-        return self::getFromContainer($id) !== null;
+        try {
+            return self::getFromContainer($id) !== null;        }
+        catch (Exception $ex) {
+            return false;
+        }
     }
 
     /**

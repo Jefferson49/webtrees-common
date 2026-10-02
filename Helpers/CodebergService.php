@@ -37,7 +37,7 @@ use Jefferson49\Webtrees\Exceptions\CodebergCommunicationError;
 class CodebergService extends PlatformService
 {
     const string NAME         = 'Codeberg';
-    const string PLATFORM_URL = 'https://codeberg.org/';
+    const string PLATFORM_URL = 'https://codeberg.org';
     const string API_URL      = 'https://codeberg.org/api/v1';
 
 

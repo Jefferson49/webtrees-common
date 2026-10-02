@@ -37,8 +37,8 @@ use Jefferson49\Webtrees\Exceptions\GithubCommunicationError;
 class GithubService extends PlatformService
 {
     const string NAME         = 'GitHub';
-    const string PLATFORM_URL = 'https://github.com/';
-    const string API_URL      = 'https://api.github.com/';
+    const string PLATFORM_URL = 'https://github.com';
+    const string API_URL      = 'https://api.github.com';
 
 
     /**

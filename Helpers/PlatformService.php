@@ -222,7 +222,7 @@ abstract class PlatformService
                 $download_url = $matches[1];
             }
             elseif (preg_match('/"tag_name":"([^"]+?)"/', $content, $matches) === 1) {
-                $download_url = static::getPlatformUrl() . $repo . '/archive/refs/tags/' . $matches[1] . '.zip';
+                $download_url = static::getPlatformUrl() . '/' . $repo . '/archive/refs/tags/' . $matches[1] . '.zip';
             }
         }
 

@@ -7,8 +7,17 @@
         "webtrees-module",
         "custom-module"
     ],
+    "authors": [
+        {
+            "name": "Markus Hemprich",
+            "homepage": "https://github.com/jefferson49",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://github.com/jefferson49/webtrees-common",
     "license": "GPL-3.0",
     "require": {
-        "php": ">=7.4"
+        "php": ">=7.4",
+        "composer/semver": "=3.4.4"
     }
 }

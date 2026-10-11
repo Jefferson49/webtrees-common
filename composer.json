@@ -18,6 +18,15 @@
     "license": "GPL-3.0",
     "require": {
         "php": ">=7.4",
-        "composer/semver": "=3.4.4"
+        "composer/semver": "=3.4.4",
+        "fig/http-message-util": "1.1.5",
+        "guzzlehttp/guzzle": "7.15.5"
+    },
+    "replace": {
+        "psr/http-client": "*",
+        "psr/http-factory": "*",
+        "psr/http-message": "*",
+        "symfony/deprecation-contracts": "*",
+        "symfony/polyfill-php80": "*"
     }
 }

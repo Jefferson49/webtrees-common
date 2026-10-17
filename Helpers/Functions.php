@@ -34,8 +34,10 @@ use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\Enums\AccessLevel;
 use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\GedcomRecord;
+use Fisharebest\Webtrees\Html;
 use Fisharebest\Webtrees\Module\ModuleInterface;
 use Fisharebest\Webtrees\Registry;
+use Fisharebest\Webtrees\Validator;
 use Fisharebest\Webtrees\Webtrees;
 use Fisharebest\Webtrees\User;
 use Illuminate\Database\Capsule\Manager as DB;
@@ -45,6 +47,7 @@ use Jefferson49\Webtrees\Log\CustomModuleLogInterface;
 use Psr\Clock\ClockInterface;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 use function time;
 
@@ -272,5 +275,27 @@ class Functions
         else {
             return (string) time();
         }
+    }
+
+    /**
+     * Get the webtrees URL
+     *
+     * @param ServerRequestInterface $request
+     * @param ?bool                  $pretty_urls
+     *
+     * @return string
+     */
+    public static function getWebtreesUrl(ServerRequestInterface $request, ?bool $pretty_urls = null): string {
+
+        if ($pretty_urls === null) {
+            $pretty_urls = Validator::attributes($request)->boolean('rewrite_urls', false);
+        }
+
+        $base_url    = Validator::attributes($request)->string('base_url');
+        $path        = version_compare(Webtrees::VERSION, '2.3', '>=') ? '' : parse_url($base_url, PHP_URL_PATH) ?? '';
+        $parameters  = ['route' => $path];
+        $url         = $base_url . '/index.php';
+
+        return $pretty_urls ? $base_url : Html::url($url, $parameters);
     }
 }

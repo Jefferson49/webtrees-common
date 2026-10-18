@@ -280,6 +280,8 @@ class Functions
     /**
      * Get the webtrees URL
      *
+     * Do not use until webtrees finally decides how to build non-pretty URLs in webtrees 2.3ff
+     *
      * @param ServerRequestInterface $request
      * @param ?bool                  $pretty_urls
      *

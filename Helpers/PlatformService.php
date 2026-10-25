@@ -108,14 +108,8 @@ abstract class PlatformService
                 //We iterate through the releases returned by the platform API.
                 //Releases are in reverse chronological order, with the newest release first
                 for ($page = 1; ; $page++) {
-                    $api_url = static::getApiUrl() . '/repos/' . $repo;
-
-                    if (static::getPlatformName() === GithubService::getPlatformName()) {
-                        $api_url . '/tags?per_page=10&page=' . $page;
-                    }
-                    elseif (static::getPlatformName() === GithubService::getPlatformName()) {
-                        $api_url . '/tags?page=' . $page . '&limit=10';
-                    }
+                    $page_param = static::getPlatformName() === GithubService::getPlatformName() ? 'per_page' : 'limit';
+                    $api_url    = static::getApiUrl() . '/repos/' . $repo . '/releases?' . $page_param . '=10&page=' . $page;
 
                     $response = static::getResponse($api_url, $api_token);
 
@@ -131,20 +125,25 @@ abstract class PlatformService
                     }
 
                     foreach ($tags as $tag) {
-                        if (!is_array($tag) || !isset($tag['name']) || !is_string($tag['name'])) {
+                        if (!is_array($tag) || !isset($tag['tag_name']) || !is_string($tag['tag_name'])) {
+                            continue;
+                        }
+
+                        // Ignore pre-releases and drafts
+                        if (!empty($tag['prerelease']) || !empty($tag['draft'])) {
                             continue;
                         }
 
                         try {
-                            $tag_version = $version_parser->normalize($tag['name']);
+                            $tag_version = $version_parser->normalize($tag['tag_name']);
                         } catch (UnexpectedValueException) {
                             continue;
                         }
 
                         if (Comparator::lessThan($tag_version, $below_version)) {
 
-                            //Since the tags are in reverse chronological order, we can stop searching once we find the first tag that is less than the below_version
-                            return $tag['name'];
+                            //Since the releases are in reverse chronological order, we can stop searching once we find the first release that is less than the below_version
+                            return $tag['tag_name'];
                         }
                     }
 
@@ -293,23 +292,43 @@ abstract class PlatformService
             return $result;
         }
 
-        $api_url = static::getApiUrl() . '/repos/' . $repo . '/releases?per_page=' . $release_count;
+        $release_count = max(1, $release_count);
+        $page_size     = max($release_count, 10);
+        $page_param    = static::getPlatformName() === GithubService::getPlatformName() ? 'per_page' : 'limit';
+        $max_pages     = 10;
+        $releases      = [];
 
-        if (static::getPlatformName() === GithubService::getPlatformName()) {
-            $api_url . '/releases?per_page=' . $release_count;
-        }
-        elseif (static::getPlatformName() === GithubService::getPlatformName()) {
-            $api_url . '/releases?limit=' . $release_count;
-        }
+        // Fetch pages until enough regular releases are collected; pre-releases and drafts are ignored
+        for ($page = 1; $page <= $max_pages && count($releases) < $release_count; $page++) {
 
-        $response = static::getResponse($api_url, $api_token);
+            $api_url  = static::getApiUrl() . '/repos/' . $repo . '/releases?' . $page_param . '=' . $page_size . '&page=' . $page;
+            $response = static::getResponse($api_url, $api_token);
 
-        if ($response->getStatusCode() === StatusCodeInterface::STATUS_OK) {
-            $releases = json_decode($response->getBody()->getContents(), true);
-
-            if (!is_array($releases) || $releases === []) {
-                return $result;
+            if ($response->getStatusCode() !== StatusCodeInterface::STATUS_OK) {
+                break;
             }
+
+            $page_releases = json_decode($response->getBody()->getContents(), true);
+
+            if (!is_array($page_releases) || $page_releases === []) {
+                break;
+            }
+
+            foreach ($page_releases as $release) {
+
+                if (is_array($release) && empty($release['prerelease']) && empty($release['draft'])) {
+                    $releases[] = $release;
+                }
+            }
+
+            if (count($page_releases) < $page_size) {
+                break;
+            }
+        }
+
+        $releases = array_slice($releases, 0, $release_count);
+
+        if ($releases !== []) {
 
             if (isset($releases[0]['published_at'])) {
                 $result['published_at'] = $releases[0]['published_at'];

@@ -76,7 +76,7 @@ abstract class PlatformService
      * Get the class for an communication error exception
      */
     public static function getCommunicationErrorExceptionClass(): string {
-        return '';
+        return HostingPlatformCommunicationError::class;
     }
 
     /**

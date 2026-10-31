@@ -224,7 +224,7 @@ class Functions
     ): Collection {
 
         if (version_compare(Webtrees::VERSION, '2.3', '>=')) {
-            return $record->facts($filter, $sort, AccessLevel::from($access_level), $ignore_deleted);
+            return $record->facts($filter, $sort, $access_level === null ? null : AccessLevel::from($access_level), $ignore_deleted);
         }
         else {
             return $record->facts($filter, $sort, $access_level, $ignore_deleted);

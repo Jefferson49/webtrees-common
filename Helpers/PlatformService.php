@@ -199,7 +199,7 @@ abstract class PlatformService
             }
         }
 
-        $download_url   = '';
+        $download_url = '';
         $api_url = static::getApiUrl() . '/repos/'. $repo . '/releases/';
 
         // If no tag is provided get the download URL of the latest release
@@ -223,6 +223,13 @@ abstract class PlatformService
             elseif (preg_match('/"tag_name":"([^"]+?)"/', $content, $matches) === 1) {
                 $download_url = static::getPlatformUrl() . '/' . $repo . '/archive/refs/tags/' . $matches[1] . '.zip';
             }
+        }
+        else {
+            throw new HostingPlatformCommunicationError('Communication error with the platform while retrieving the download URL for version: ' . $version);
+        }
+
+        if ($download_url === '') {
+            throw new HostingPlatformCommunicationError('Empty download URL received for version: ' . $version);
         }
 
         return $download_url;
@@ -257,6 +264,9 @@ abstract class PlatformService
                     $file_content = base64_decode($file_object['content']);
                     return $file_content;
                 }
+            }
+            else {
+                throw new HostingPlatformCommunicationError('Communication error with the platform while retrieving the file content for ' . $path . ' on branch ' . $branch);
             }
         }
 
@@ -410,6 +420,9 @@ abstract class PlatformService
                 $content = (array) Json_decode($response->getBody()->getContents());
                 $body = $content['body'] ?? '';
                 return $body;
+            }
+            else {
+                throw new HostingPlatformCommunicationError('Communication error with the platform while retrieving the latest release notes for repository: ' . $repo);
             }
         }
 

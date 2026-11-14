@@ -98,8 +98,6 @@ abstract class PlatformService
             throw new InvalidArgumentException('Empty repository specified');
         }
 
-        $reflection_class_communication_error = new ReflectionClass(static::getCommunicationErrorExceptionClass());
-
         //If we need to search for a version below a certain version, we need to iterate through the releases and compare the versions
         if ($below_tag !== '') {
             $version_parser = new VersionParser();
@@ -305,9 +303,10 @@ abstract class PlatformService
 
         //Default result
         $result = [
-            'tag' => '',
-            'published_at' => '',
+            'tag'           => '',
+            'published_at'  => '',
             'max_downloads' => -1,
+            'tags'          => [],
         ];
 
         $release_count = max(1, $release_count);
@@ -344,6 +343,9 @@ abstract class PlatformService
                 break;
             }
         }
+
+        // Add all tag names from the collected releases
+        $result['tags'] = array_column($releases, 'tag_name');
 
         $releases = array_slice($releases, 0, $release_count);
 

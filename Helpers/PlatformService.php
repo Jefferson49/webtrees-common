@@ -41,6 +41,7 @@ use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Jefferson49\Webtrees\Exceptions\HostingPlatformCommunicationError;
 
+use Exception;
 use InvalidArgumentException;
 use ReflectionClass;
 use UnexpectedValueException;
@@ -86,88 +87,89 @@ abstract class PlatformService
      * @param string $api_token  An API token, to allow a higher frequency of API requests
      * @param string $below_tag  If provided, the latest release below this version will be returned
      *
-     * @throws InvalidArgumentException           If $below_tag is not a valid version format
+     * @throws InvalidArgumentException           If $repo is empty or $below_tag is not a valid version format
      * @throws HostingPlatformCommunicationError  In case of a communcation error with the hosting platform
      *
      * @return string                             The tag of the latest release below the specified version, or an empty string if no such release exists
      */
     public static function getLatestReleaseTag(string $repo, string $api_token = '', string $below_tag = ''): string
     {
-        if ($repo !== '') {
+        if ($repo === '') {
+            throw new InvalidArgumentException('Empty repository specified');
+        }
 
-            //If we need to search for a version below a certain version, we need to iterate through the releases and compare the versions
-            if ($below_tag !== '') {
-                $version_parser = new VersionParser();
+        $reflection_class_communication_error = new ReflectionClass(static::getCommunicationErrorExceptionClass());
 
-                try {
-                    $below_version = $version_parser->normalize($below_tag);
-                } catch (UnexpectedValueException) {
-                    throw new InvalidArgumentException('Invalid version format for $below_tag: ' . $below_tag);
-                }
+        //If we need to search for a version below a certain version, we need to iterate through the releases and compare the versions
+        if ($below_tag !== '') {
+            $version_parser = new VersionParser();
 
-                //We iterate through the releases returned by the platform API.
-                //Releases are in reverse chronological order, with the newest release first
-                for ($page = 1; ; $page++) {
-                    $page_param = static::getPlatformName() === GithubService::getPlatformName() ? 'per_page' : 'limit';
-                    $api_url    = static::getApiUrl() . '/repos/' . $repo . '/releases?' . $page_param . '=10&page=' . $page;
-
-                    $response = static::getResponse($api_url, $api_token);
-
-                    if ($response->getStatusCode() !== StatusCodeInterface::STATUS_OK) {
-                        $ref = new ReflectionClass(static::getCommunicationErrorExceptionClass());
-                        throw $ref->newInstance('Error occurred while fetching release tags from the ' . static::getPlatformName() . ' API');
-                    }
-
-                    $tags = json_decode($response->getBody()->getContents(), true);
-
-                    if (!is_array($tags) || $tags === []) {
-                        break;
-                    }
-
-                    foreach ($tags as $tag) {
-                        if (!is_array($tag) || !isset($tag['tag_name']) || !is_string($tag['tag_name'])) {
-                            continue;
-                        }
-
-                        // Ignore pre-releases and drafts
-                        if (!empty($tag['prerelease']) || !empty($tag['draft'])) {
-                            continue;
-                        }
-
-                        try {
-                            $tag_version = $version_parser->normalize($tag['tag_name']);
-                        } catch (UnexpectedValueException) {
-                            continue;
-                        }
-
-                        if (Comparator::lessThan($tag_version, $below_version)) {
-
-                            //Since the releases are in reverse chronological order, we can stop searching once we find the first release that is less than the below_version
-                            return $tag['tag_name'];
-                        }
-                    }
-
-                    if (count($tags) < 10) {
-                        break;
-                    }
-                }
-
-                //If we did not find anything below the specified version, return empty string
-                return '';
+            try {
+                $below_version = $version_parser->normalize($below_tag);
+            } catch (UnexpectedValueException) {
+                throw new InvalidArgumentException('Invalid version format for $below_tag: ' . $below_tag);
             }
 
-            //If we do not need to search for a version below a certain version, we retrieve the latest release
-            $api_url = static::getApiUrl() . '/repos/'. $repo . '/releases/latest';
+            //We iterate through the releases returned by the platform API.
+            //Releases are in reverse chronological order, with the newest release first
+            for ($page = 1; ; $page++) {
+                $page_param = static::getPlatformName() === GithubService::getPlatformName() ? 'per_page' : 'limit';
+                $api_url    = static::getApiUrl() . '/repos/' . $repo . '/releases?' . $page_param . '=10&page=' . $page;
 
+                $response = static::getResponse($api_url, $api_token);
+
+                $tags = json_decode($response->getBody()->getContents(), true);
+
+                if (!is_array($tags) || $tags === []) {
+                    break;
+                }
+
+                foreach ($tags as $tag) {
+                    if (!is_array($tag) || !isset($tag['tag_name']) || !is_string($tag['tag_name'])) {
+                        continue;
+                    }
+
+                    // Ignore pre-releases and drafts
+                    if (!empty($tag['prerelease']) || !empty($tag['draft'])) {
+                        continue;
+                    }
+
+                    try {
+                        $tag_version = $version_parser->normalize($tag['tag_name']);
+                    } catch (UnexpectedValueException) {
+                        continue;
+                    }
+
+                    if (Comparator::lessThan($tag_version, $below_version)) {
+
+                        //Since the releases are in reverse chronological order, we can stop searching once we find the first release that is less than the below_version
+                        return $tag['tag_name'];
+                    }
+                }
+
+                if (count($tags) < 10) {
+                    break;
+                }
+            }
+
+            //If we did not find anything below the specified version, return empty string
+            return '';
+        }
+
+        //If we do not need to search for a version below a certain version, we retrieve the latest release
+        $api_url = static::getApiUrl() . '/repos/'. $repo . '/releases/latest';
+
+        try {
             $response = static::getResponse($api_url, $api_token);
+            $content = $response->getBody()->getContents();
 
-            if ($response->getStatusCode() === StatusCodeInterface::STATUS_OK) {
-                $content = $response->getBody()->getContents();
+        } catch (Exception $e) {
+            $ref = new ReflectionClass(static::getCommunicationErrorExceptionClass());
+            throw $ref->newInstance('Error occurred while fetching latest release tag from the ' . static::getPlatformName() . ' API. ' . $e->getMessage());
+        }
 
-                if (preg_match('/"tag_name":"([^"]+?)"/', $content, $matches) === 1) {
-                    return $matches[1];
-                }
-            }
+        if (preg_match('/"tag_name":"([^"]+?)"/', $content, $matches) === 1) {
+            return $matches[1];
         }
 
         return '';
@@ -178,15 +180,22 @@ abstract class PlatformService
      *
      * @param string $repo        The repository, e.g. 'Jefferson49/webtrees-common'
      * @param string $version     The version of the module; latest version if empty
-     * @param string $tag_prefix  A prefix for the verison tag, e.g. 'v' in case of 'v1.2.3'
+     * @param string $tag_prefix  A prefix for the version tag, e.g. 'v' in case of 'v1.2.3'
      * @param string $api_token   An API token, to allow a higher frequency of API requests
      *
+     * @throws InvalidArgumentException           In case of empty repository or version
      * @throws HostingPlatformCommunicationError  In case of communcation error with the platform
      *
      * @return string
      */
     public static function downloadUrl(string $repo, string $version, string $tag_prefix, string $api_token = ''): string
     {
+        if ($repo === '') {
+            throw new InvalidArgumentException('Empty repository specified');
+        }
+
+        $reflection_class_communication_error = new ReflectionClass(static::getCommunicationErrorExceptionClass());
+
         //Remove wrong line feed characters, e.g. at the end of a version
 		$version = str_replace(["\n", "\r"], ['', ''], $version);
 
@@ -212,24 +221,23 @@ abstract class PlatformService
         }
 
         // Get the download URL from the platform
-        $response = static::getResponse($url, $api_token);
-
-        if ($response->getStatusCode() === StatusCodeInterface::STATUS_OK) {
+        try {
+            $response = static::getResponse($url, $api_token);
             $content = $response->getBody()->getContents();
 
-            if (preg_match('/"browser_download_url":"([^"]+?)"/', $content, $matches) === 1) {
-                $download_url = $matches[1];
-            }
-            elseif (preg_match('/"tag_name":"([^"]+?)"/', $content, $matches) === 1) {
-                $download_url = static::getPlatformUrl() . '/' . $repo . '/archive/refs/tags/' . $matches[1] . '.zip';
-            }
+        } catch (Exception $e) {
+            throw $reflection_class_communication_error->newInstance('Error occurred while retrieving the download URL from the ' . static::getPlatformName() . ' API for version: ' . $version . ': ' . $e->getMessage());
         }
-        else {
-            throw new HostingPlatformCommunicationError('Communication error with the platform while retrieving the download URL for version: ' . $version);
+
+        if (preg_match('/"browser_download_url":"([^"]+?)"/', $content, $matches) === 1) {
+            $download_url = $matches[1];
+        }
+        elseif (preg_match('/"tag_name":"([^"]+?)"/', $content, $matches) === 1) {
+            $download_url = static::getPlatformUrl() . '/' . $repo . '/archive/refs/tags/' . $matches[1] . '.zip';
         }
 
         if ($download_url === '') {
-            throw new HostingPlatformCommunicationError('Empty download URL received for version: ' . $version);
+            throw $reflection_class_communication_error->newInstance('Empty download URL received from ' . static::getPlatformName() . ' for version: ' . $version);
         }
 
         return $download_url;
@@ -243,34 +251,33 @@ abstract class PlatformService
      * @param string $path       The path in the repository including the file name
      * @param string $api_token  An API token, to allow a higher frequency of API requests
      *
+     * @throws InvalidArgumentException           In case of empty repository, branch, or path
      * @throws HostingPlatformCommunicationError  In case of a communcation error with the platform
      *
      * @return string
      */
     public static function getTextFileContent(string $repo, string $branch, string $path, string $api_token = ''): string
     {
-        if ($repo !== '') {
-
-            $api_url = static::getApiUrl() . '/repos/'. $repo .'/contents/' . $path . '?ref=' . $branch;
-
-            $response = static::getResponse($api_url, $api_token);
-
-            if ($response->getStatusCode() === StatusCodeInterface::STATUS_OK) {
-
-                $content = $response->getBody()->getContents();
-                $file_object = json_decode($content, true);
-
-                if (isset($file_object['content'])) {
-                    $file_content = base64_decode($file_object['content']);
-                    return $file_content;
-                }
-            }
-            else {
-                throw new HostingPlatformCommunicationError('Communication error with the platform while retrieving the file content for ' . $path . ' on branch ' . $branch);
-            }
+        if ($repo === '' OR $branch === '' OR $path === '') {
+            throw new InvalidArgumentException('Empty repository, branch, or path');
         }
 
-        return '';
+        $reflection_class_communication_error = new ReflectionClass(static::getCommunicationErrorExceptionClass());
+
+        $api_url = static::getApiUrl() . '/repos/'. $repo .'/contents/' . $path . '?ref=' . $branch;
+
+        try {
+            $response = static::getResponse($api_url, $api_token);
+
+            $content      = $response->getBody()->getContents();
+            $file_object  = json_decode($content, true);
+            $file_content = base64_decode($file_object['content']);
+
+            return $file_content;
+        }
+        catch (Exception $e) {
+            throw $reflection_class_communication_error->newInstance('Error while retrieving the file content via the ' . static::getPlatformName() . ' API for ' . $path . ' in repository ' . $repo . ' on branch ' . $branch . ': ' . $e->getMessage());
+        }
     }
 
     /**
@@ -285,22 +292,23 @@ abstract class PlatformService
      * @param string $below_tag      If provided, only consider releases below this tag
      * @param int    $release_count  The number of recent releases to consider
      *
+     * @throws InvalidArgumentException           In case of an empty repository specified
      * @throws HostingPlatformCommunicationError  In case of a communication error with the platform
      *
      * @return array{tag: string, max_downloads: int}  The latest tag and max download count (-1 if unavailable)
      */
     public static function getRecentReleasesInfo(string $repo, string $api_token = '', string $below_tag = '', int $release_count = 3): array
     {
+        if ($repo === '') {
+            throw new InvalidArgumentException('Empty repository specified');
+        }
+
         //Default result
         $result = [
             'tag' => '',
             'published_at' => '',
             'max_downloads' => -1,
         ];
-
-        if ($repo === '') {
-            return $result;
-        }
 
         $release_count = max(1, $release_count);
         $page_size     = max($release_count, 10);
@@ -312,13 +320,14 @@ abstract class PlatformService
         for ($page = 1; $page <= $max_pages && count($releases) < $release_count; $page++) {
 
             $api_url  = static::getApiUrl() . '/repos/' . $repo . '/releases?' . $page_param . '=' . $page_size . '&page=' . $page;
-            $response = static::getResponse($api_url, $api_token);
 
-            if ($response->getStatusCode() !== StatusCodeInterface::STATUS_OK) {
+            try {
+                $response = static::getResponse($api_url, $api_token);
+                $page_releases = json_decode($response->getBody()->getContents(), true);
+
+            } catch (Exception $e) {
                 break;
             }
-
-            $page_releases = json_decode($response->getBody()->getContents(), true);
 
             if (!is_array($page_releases) || $page_releases === []) {
                 break;
@@ -410,23 +419,22 @@ abstract class PlatformService
      */
     public static function getLatestReleaseNotes(string $repo, string $api_token = ''): string
     {
-        if ($repo !== '') {
-
-            $api_url = static::getApiUrl() . '/repos/'. $repo . '/releases/latest';
-            $response = static::getResponse($api_url, $api_token);
-
-            if ($response->getStatusCode() === StatusCodeInterface::STATUS_OK) {
-
-                $content = (array) Json_decode($response->getBody()->getContents());
-                $body = $content['body'] ?? '';
-                return $body;
-            }
-            else {
-                throw new HostingPlatformCommunicationError('Communication error with the platform while retrieving the latest release notes for repository: ' . $repo);
-            }
+        if ($repo === '') {
+            throw new InvalidArgumentException('Empty repository specified');
         }
 
-        return '';
+        $api_url = static::getApiUrl() . '/repos/'. $repo . '/releases/latest';
+
+        try {
+            $response = static::getResponse($api_url, $api_token);
+            $content = (array) Json_decode($response->getBody()->getContents());
+            $body = $content['body'] ?? '';
+            return $body;
+
+        } catch (Exception $ex) {
+            $reflection_class_communication_error = new ReflectionClass(static::getCommunicationErrorExceptionClass());
+            throw $reflection_class_communication_error->newInstance('Error while retrieving the latest release notes via the ' . self::getPlatformName() . ' API for repository: ' . $repo . '. ' . $ex->getMessage());
+        }
     }
 
     /**
@@ -441,6 +449,8 @@ abstract class PlatformService
      */
     public static function getResponse(string $url, string $api_token = ''): ResponseInterface
     {
+        $reflection_class_communication_error = new ReflectionClass(static::getCommunicationErrorExceptionClass());
+
         if (version_compare(Webtrees::VERSION, '2.3', '>=')) {
             try {
                 $http_client     = Registry::container()->get(ClientInterface::class);
@@ -451,12 +461,17 @@ abstract class PlatformService
                     $request = $request->withHeader('Authorization', 'Bearer ' . $api_token);
                 }
 
-                return $http_client->sendRequest($request);
+                $response = $http_client->sendRequest($request);
+
+                if ($response->getStatusCode() !== StatusCodeInterface::STATUS_OK) {
+                    throw $reflection_class_communication_error->newInstance('Failed to retrieve response from ' . self::getPlatformName() . '. HTTP status code: ' . $response->getStatusCode());
+                }
+
+                return $response;
 
             } catch (ClientExceptionInterface $ex) {
                 // Can't connect to the server?
-                $ref = new ReflectionClass(static::getCommunicationErrorExceptionClass());
-                throw $ref->newInstance($ex->getMessage());
+                throw $reflection_class_communication_error->newInstance('Failed to retrieve response from ' . self::getPlatformName() . '. ' . $ex->getMessage());
             }
         }
         else {
@@ -473,12 +488,17 @@ abstract class PlatformService
                     $options['headers'] = ['Authorization' => 'Bearer ' . $api_token];
                 }
 
-                return $client->get($url, $options);
+                $response = $client->get($url, $options);
+
+                if ($response->getStatusCode() !== StatusCodeInterface::STATUS_OK) {
+                    throw $reflection_class_communication_error->newInstance('Failed to retrieve response from .' . self::getPlatformName() . '. HTTP status code: ' . $response->getStatusCode());
+                }
+
+                return $response;
 
             } catch (GuzzleException $ex) {
                 // Can't connect to the hosting platform?
-                $ref = new ReflectionClass(static::getCommunicationErrorExceptionClass());
-                throw $ref->newInstance($ex->getMessage());
+                throw $reflection_class_communication_error->newInstance('Failed to retrieve response from .' . self::getPlatformName() . '. ' . $ex->getMessage());
             }
         }
     }
